@@ -1,12 +1,19 @@
 import serial
 import os
 
-path = 'C:\Users\mlao\Downloads\APril18.mp3'
+path1 = 'C:\Users\mlao\Downloads\APril18.mp3'
+path2 = 'C:\Users\mlao\Downloads\CornfieldChase.mp3'
 arduino = serial.Serial('COM5', 9600, timeout=.1)
 while True:
 	data = arduino.readline()[:-2]
-	if data == '1':
-		os.startfile(path)
-	if data == '2':
+	if data == '11':
+		print data
 		os.system('TASKKILL /F /IM wmplayer.exe')
-		
+		os.startfile(path1)
+	if data == '21':
+		os.system('TASKKILL /F /IM wmplayer.exe')
+		os.startfile(path2)
+	if data == '12':
+		os.system('TASKKILL /F /IM wmplayer.exe')
+	if data == '22':
+		os.system('TASKKILL /F /IM wmplayer.exe')
