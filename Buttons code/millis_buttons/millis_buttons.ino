@@ -74,14 +74,14 @@ void loop(){
       debouncingMillis = currentMillis;
     }
   }
-  if(button1Counter == 1){    
+  if(button1Counter == 1){    //jukebox hero
     digitalWrite(greenled,HIGH);
   }
   if(button1Counter % 2 == 0){
     digitalWrite(greenled,LOW);
     button1Counter = 0;
   }
-  if(button2Counter == 1) {      
+  if(button2Counter == 1) {   //shape of you
     digitalWrite(blueled,HIGH);
   }
   if(button2Counter % 2 == 0) {
