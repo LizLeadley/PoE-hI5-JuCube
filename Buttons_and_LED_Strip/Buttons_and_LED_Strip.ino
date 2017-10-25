@@ -9,8 +9,6 @@
 #define PIN 6
 const byte button1 = 2; //green
 const byte button2 = 3; //blue
-const byte greenled = 7; 
-const byte blueled = 9;
 
 const int jukeBoxHero = 177;
 const int shapeOfYou = 96;
@@ -20,8 +18,6 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(30, PIN, NEO_GRB + NEO_KHZ800);
 
 int button1Counter = 0;
 int button2Counter = 0;
-int greenledState = LOW;
-int blueledState = LOW;
 int button1State = 0;
 int button2State = 0;
 int lastButton1State = 0;
@@ -35,6 +31,8 @@ unsigned long currentMillis = 0;
 unsigned long debouncingMillis = 0;
 
 //Colors:
+uint32_t stripOff = strip.Color(0, 0, 0); 
+
 uint32_t turqoise = strip.Color(97, 232, 214); 
 uint32_t magenta = strip.Color(235, 29, 29); 
 
@@ -56,8 +54,8 @@ void setup() {
     Serial.begin(9600);
     pinMode(button1,INPUT);
     pinMode(button2,INPUT);
-    pinMode(greenled,OUTPUT);
-    pinMode(blueled,OUTPUT);
+    //pinMode(greenled,OUTPUT);
+   
 
     strip.begin();
     strip.setBrightness(150); //sets max brightness for the LEDs (0 to 255)
@@ -105,21 +103,28 @@ void loop(){
     }
   }
   if(button1Counter == 1){    //jukebox hero
-    digitalWrite(greenled,HIGH);
+    //digitalWrite(greenled,HIGH);
     beatTime = beatFind(jukeBoxHero);
-    loopTwo(beatTime, darkBlue, brightRed, yellow);
+    loopTwo(beatTime, brightRed, darkRed, yellow);
   }
   if(button1Counter % 2 == 0){
-    digitalWrite(greenled,LOW);
+    uint16_t i;
+    for(i=0; i<strip.numPixels(); i++) {
+      strip.setPixelColor(i, stripOff);
+    }
+    strip.show();
     button1Counter = 0;
   }
   if(button2Counter == 1) {   //shape of you
-    digitalWrite(blueled,HIGH);
     beatTime = beatFind(shapeOfYou);
-    loopTwo(beatTime, darkBlue, brightRed, yellow);
+    loopTwo(beatTime, darkRed, yellow, darkBlue);
   }
   if(button2Counter % 2 == 0) {
-    digitalWrite(blueled,LOW);
+     uint16_t i;
+    for(i=0; i<strip.numPixels(); i++) {
+      strip.setPixelColor(i, stripOff);
+    }
+    strip.show();
     button2Counter = 0;
   }
   // save the current state as the last state,
@@ -137,16 +142,20 @@ double beatFind(double bpm) {
 void loopTwo(double msTime, uint32_t mainColor, uint32_t offColor,uint32_t mainColor2) {
   int i;
   for(i=0; i < 7; i++) {
-  loopOne(msTime, mainColor, offColor);
+    loopOne(msTime, mainColor, offColor);
   }
-  loopOne(msTime, mainColor2, offColor);
 }
 
 void loopOne(double msTime, uint32_t mainColor, uint32_t offColor) {
   colorMain(0, mainColor); //main color
-  delay(msTime-offColorDelay);
-  colorOff(offColorDelay, offColor); //off color
-}
+  if (currentMillis - previousMillis >= (msTime-offColorDelay)) {
+    colorOff(offColorDelay, offColor); //off color
+    
+    if(currentMillis - previousMillis >= msTime) {  
+      previousMillis = currentMillis;
+    }
+  }
+ }  
 
 void colorOff(uint8_t beat, uint32_t color) {
   uint16_t i; 
@@ -154,7 +163,7 @@ void colorOff(uint8_t beat, uint32_t color) {
     strip.setPixelColor(i, color);
   }
   strip.show();
-  delay(beat);
+  //delay(beat);
 }
 
 void colorMain(uint8_t beat, uint32_t color) {
@@ -163,7 +172,6 @@ void colorMain(uint8_t beat, uint32_t color) {
     strip.setPixelColor(i, color);
   }
   strip.show();
-  delay(beat);
 }
 
 
