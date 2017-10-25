@@ -1,8 +1,8 @@
 import serial
 import os
 
-path1 = 'C:\Users\mlao\Downloads\APril18.mp3'
-path2 = 'C:\Users\mlao\Downloads\CornfieldChase.mp3'
+path1 = 'C:\Users\mlao\Desktop\POE\JukeboxHero.mp3'
+path2 = 'C:\Users\mlao\Desktop\POE\ShapeOfYou.mp3'
 arduino = serial.Serial('COM5', 9600, timeout=.1)
 while True:
 	data = arduino.readline()[:-2]
