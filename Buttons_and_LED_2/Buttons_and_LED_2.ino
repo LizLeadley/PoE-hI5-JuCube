@@ -78,8 +78,7 @@ void loop(){
       if (button1State == HIGH) {
         // increment counter to change the LED mode
         button1Counter++;
-        Serial.print("1");
-        Serial.println(button1Counter);
+        Serial.println("1");
         button2Counter = 0;
       } 
       //reset the debounce timer
@@ -94,40 +93,22 @@ void loop(){
       if (button2State == HIGH) {
         // increment counter to change the LED mode
         button2Counter++;
-        Serial.print("2");
-        Serial.println(button2Counter);
+        Serial.println("2");
         button1Counter = 0;
       } 
       //reset the debounce timer
       debouncingMillis = currentMillis;
     }
   }
-  if(button1Counter == 1){    //jukebox hero
+  if(button1Counter >= 1){    //jukebox hero
     //digitalWrite(greenled,HIGH);
     beatTime = beatFind(jukeBoxHero);
     //loopTwo(beatTime, darkBlue, turqoise, noColor);
     loopTwo(beatTime, brightRed, noColor, darkBlue);
   }
-  if(button1Counter % 2 == 0){
-    uint16_t i;
-    for(i=0; i<strip.numPixels(); i++) {
-      strip.setPixelColor(i, noColor);
-    }
-    strip.show();
-    button1Counter = 0;
-  }
-  if(button2Counter == 1) {   //shape of you
+  if(button2Counter >= 1) {   //shape of you
     beatTime = beatFind(shapeOfYou);
-    colorCombo(beatTime, darkBlue, magenta, brightGreen, purple);
-    
-  }
-  if(button2Counter % 2 == 0) {
-     uint16_t i;
-    for(i=0; i<strip.numPixels(); i++) {
-      strip.setPixelColor(i, noColor);
-    }
-    strip.show();
-    button2Counter = 0;
+    colorCombo(beatTime, darkBlue, magenta, brightGreen, purple);  
   }
   // save the current state as the last state,
   //for next time through the loop
