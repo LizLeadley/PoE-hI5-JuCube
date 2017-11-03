@@ -31,33 +31,36 @@ class Music_Player():
     def picksong(self):
         files = self.filesfolder()
         song = random.choice(files)
-        print(song)
         return song
 
 
 musicplayer = Music_Player()
+songs = musicplayer.filesfolder()
+print(songs)
 sound = musicplayer.picksong()
 arduino = serial.Serial('COM12', 9600, timeout=.1)
 
-def events(player, sound):
+def events(player, songs):
+    i = 1
+    path = 'C:/Users/apayano/Documents/GitHub/PoE-hI5-JuCube/Music/'
     while True:
         data = arduino.readline()[:-2]
-        if data == b'11':
-            pygame.mixer.music.load(('C:/Users/apayano/Documents/GitHub/PoE-hI5-JuCube/Music/' + sound))
+        if data == b'1':
+            i -= 1
+            if i < 0:
+                i = 4
+            print('Playing ' + songs[i])
+            pygame.mixer.music.stop()
+            pygame.mixer.music.load((path + songs[i]))
             pygame.mixer.music.play()
-            print('playing')
-        if data == b'21':
-            sound = musicplayer.picksong()
+        if data == b'2':
+            i += 1
+            if i > 4:
+                i = 0
+            print('Playing ' + songs[i])
             pygame.mixer.music.stop()
-            pygame.mixer.music.load(('C:/Users/apayano/Documents/GitHub/PoE-hI5-JuCube/Music/' + sound))
+            pygame.mixer.music.load((path + songs[i]))
             pygame.mixer.music.play()
-            print('playing')
-        if data == b'12':
-            pygame.mixer.music.stop()
-            print('stop')
-        if data == b'22':
-            pygame.mixer.music.stop()
-            print('stop')
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -74,4 +77,4 @@ files = musicplayer.filesfolder()
 
 print('press p - play sound')
 print('press c - change song')
-events(musicplayer,sound)
+events(musicplayer,songs)
