@@ -106,7 +106,8 @@ void loop(){
     //digitalWrite(greenled,HIGH);
     beatTime = beatFind(100.0);
     //loopTwo(beatTime, darkBlue, turqoise, noColor);
-    colorCombo(beatTime);
+    loopTwo(beatTime, brightGreen, noColor, darkBlue);
+    
   }
   if(button1Counter % 2 == 0){
     uint16_t i;
@@ -118,7 +119,7 @@ void loop(){
   }
   if(button2Counter == 1) {   //shape of you
     beatTime = beatFind(shapeOfYou);
-    loopTwo(beatTime, brightRed, noColor, darkBlue);
+    colorCombo(beatTime);
   }
   if(button2Counter % 2 == 0) {
      uint16_t i;

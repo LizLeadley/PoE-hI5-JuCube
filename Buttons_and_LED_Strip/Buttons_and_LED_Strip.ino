@@ -10,9 +10,9 @@
 const byte button1 = 2; //green
 const byte button2 = 3; //blue
 
-const int jukeBoxHero = 177;
-const int shapeOfYou = 96;
-const int offColorDelay = 50; //ms
+const double jukeBoxHero = 177.0;
+const double shapeOfYou = 96.0;
+const double offColorDelay = 50.0; //ms
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(30, PIN, NEO_GRB + NEO_KHZ800);
 
@@ -31,7 +31,7 @@ unsigned long currentMillis = 0;
 unsigned long debouncingMillis = 0;
 
 //Colors:
-uint32_t stripOff = strip.Color(0, 0, 0); 
+uint32_t noColor = strip.Color(0, 0, 0); 
 
 uint32_t turqoise = strip.Color(97, 232, 214); 
 uint32_t magenta = strip.Color(235, 29, 29); 
@@ -58,7 +58,7 @@ void setup() {
    
 
     strip.begin();
-    strip.setBrightness(150); //sets max brightness for the LEDs (0 to 255)
+    strip.setBrightness(200); //sets max brightness for the LEDs (0 to 255)
     strip.show(); // Initialize all pixels to 'off'
 }
 
@@ -105,24 +105,26 @@ void loop(){
   if(button1Counter == 1){    //jukebox hero
     //digitalWrite(greenled,HIGH);
     beatTime = beatFind(jukeBoxHero);
-    loopTwo(beatTime, brightRed, darkRed, yellow);
+    //loopTwo(beatTime, darkBlue, turqoise, noColor);
+    loopTwo(beatTime, brightRed, noColor, darkBlue);
+    
   }
   if(button1Counter % 2 == 0){
     uint16_t i;
     for(i=0; i<strip.numPixels(); i++) {
-      strip.setPixelColor(i, stripOff);
+      strip.setPixelColor(i, noColor);
     }
     strip.show();
     button1Counter = 0;
   }
   if(button2Counter == 1) {   //shape of you
     beatTime = beatFind(shapeOfYou);
-    loopTwo(beatTime, darkRed, yellow, darkBlue);
+    colorCombo(beatTime);
   }
   if(button2Counter % 2 == 0) {
      uint16_t i;
     for(i=0; i<strip.numPixels(); i++) {
-      strip.setPixelColor(i, stripOff);
+      strip.setPixelColor(i, noColor);
     }
     strip.show();
     button2Counter = 0;
@@ -139,44 +141,47 @@ double beatFind(double bpm) {
   return result;
 }
 
+void colorCombo(double msTime){
+  if (millis() % (int)(msTime*4) < msTime){
+    loopOne(msTime, magenta, noColor);
+  }
+  else if (millis() % (int)(msTime*4) < 2*msTime){
+    loopOne(msTime, darkBlue, noColor);
+  }
+  else if (millis() % (int)(msTime*4) < 3*msTime){
+    loopOne(msTime, brightGreen, noColor);
+  }
+  else{
+    loopOne(msTime, purple, noColor);
+  }
+}
+
 void loopTwo(double msTime, uint32_t mainColor, uint32_t offColor,uint32_t mainColor2) {
-  int i;
+  int i = 0;
   for(i=0; i < 7; i++) {
     loopOne(msTime, mainColor, offColor);
   }
 }
 
-void loopOne(double msTime, uint32_t mainColor, uint32_t offColor) {
-  colorMain(0, mainColor); //main color
+void loopOne(double msTime, uint32_t colorMain, uint32_t colorTwo) {
+  //Serial.println("Current millis:");
+  //Serial.print(currentMillis);
   if (currentMillis - previousMillis >= (msTime-offColorDelay)) {
-    colorOff(offColorDelay, offColor); //off color
+    setColor(colorTwo); //set strip to second color
     
     if(currentMillis - previousMillis >= msTime) {  
       previousMillis = currentMillis;
     }
   }
+  else {
+    setColor(colorMain); //sets LEDs to main color
+  }
  }  
 
-void colorOff(uint8_t beat, uint32_t color) {
-  uint16_t i; 
-  for(i=0; i<strip.numPixels(); i++) {
-    strip.setPixelColor(i, color);
-  }
-  strip.show();
-  //delay(beat);
-}
-
-void colorMain(uint8_t beat, uint32_t color) {
+void setColor(uint32_t color) {
   uint16_t i;
   for(i=0; i<strip.numPixels(); i++) {
     strip.setPixelColor(i, color);
   }
   strip.show();
 }
-
-
-
-  
-
-
-
