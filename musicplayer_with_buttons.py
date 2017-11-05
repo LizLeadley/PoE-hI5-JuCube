@@ -45,30 +45,23 @@ def events(player, songs):
     path = 'C:/Users/apayano/Documents/GitHub/PoE-hI5-JuCube/Music player/Music/'
     while True:
         data = arduino.readline()[:-2]
-        if data == b'0':
-            i -= 1
-            if i < 0:
-                i = 4
-            print('Playing ' + songs[i])
-            pygame.mixer.music.stop()
-            pygame.mixer.music.load((path + songs[i]))
-            pygame.mixer.music.play()
         if data == b'1':
             i -= 1
             if i < 0:
                 i = 4
             print('Playing ' + songs[i])
-            pygame.mixer.music.stop()
             pygame.mixer.music.load((path + songs[i]))
-            pygame.mixer.music.play()
         if data == b'2':
             i += 1
             if i > 4:
                 i = 0
             print('Playing ' + songs[i])
-            pygame.mixer.music.stop()
             pygame.mixer.music.load((path + songs[i]))
+        if data == b'01':
+            pygame.mixer.music.stop()
             pygame.mixer.music.play()
+        if data == b'02'
+            pygame.mixer.music.stop()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()

@@ -5,13 +5,12 @@
 
 const byte button1 = 2; //green
 const byte button2 = 3; //blue
-const int buttonPin = 4;
+const byte button3 = 4;
 
 
-LiquidCrystal_I2C lcd(0x3E, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE); 
+LiquidCrystal_I2C lcd(0x3E, 2, 1, 0, 4, 5, 6, 7, 3,POSITIVE); 
 
-int button1Counter = 0;
-int button2Counter = 0;
+int button3Counter = 0;
 int button1State = 0;
 int button2State = 0;
 int button3State = 0;
@@ -34,9 +33,7 @@ void setup() {
     Serial.begin(9600);
     pinMode(button1,INPUT);
     pinMode(button2,INPUT);
-    pinMode(button3, INPUT);
-    //pinMode(greenled,OUTPUT);
-  
+    pinMode(button3, INPUT);  
 
     lcd.begin(16,2);   // initialize the lcd for 16 chars 2 lines, turn on backlight
   // ------- Quick 3 blinks of backlight  -------------
@@ -72,13 +69,11 @@ void loop(){
       // if the state has changed (button has been pressed), increment the counter
       if (button1State == HIGH) {
         // increment counter to change the LED mode
-        button1Counter++;
         lcdCounter--;
         if (lcdCounter <= 0) {
           lcdCounter = 5;
         }
         Serial.println("1");
-        button2Counter = 0;
       } 
       //reset the debounce timer
       debouncingMillis = currentMillis;
@@ -91,13 +86,11 @@ void loop(){
       // if the state has changed (button has been pressed), increment the counter
       if (button2State == HIGH) {
         // increment counter to change the LED mode
-        button2Counter++;
         lcdCounter++;
         if (lcdCounter >= 6) {
           lcdCounter = 1;
         }
         Serial.println("2");
-        button1Counter = 0;
       } 
       //reset the debounce timer
       debouncingMillis = currentMillis;
@@ -109,10 +102,14 @@ void loop(){
       // if the state has changed (button has been pressed), increment the counter
       if (button3State == HIGH) {
         // increment counter to change the LED mode
-        Serial.println("0");
+        button3Counter++;
+        Serial.print("0");
+        Serial.print(button3Counter);
       } 
       //reset the debounce timer
       debouncingMillis = currentMillis;
+      if (button3Counter == 2){
+        button3Counter = 0;
     }
   }
   lastButton1State = button1State;
