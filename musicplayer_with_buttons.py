@@ -20,7 +20,7 @@ class Music_Player():
 
     def filesfolder(self):
         files = []
-        path = 'C:/Users/apayano/Documents/GitHub/PoE-hI5-JuCube/Music/'
+        path = 'C:/Users/apayano/Documents/GitHub/PoE-hI5-JuCube/Music player/Music/'
         directory = os.listdir(path)
         for filename in directory:
             if filename.endswith(".mp3"):
@@ -42,9 +42,17 @@ arduino = serial.Serial('COM12', 9600, timeout=.1)
 
 def events(player, songs):
     i = 1
-    path = 'C:/Users/apayano/Documents/GitHub/PoE-hI5-JuCube/Music/'
+    path = 'C:/Users/apayano/Documents/GitHub/PoE-hI5-JuCube/Music player/Music/'
     while True:
         data = arduino.readline()[:-2]
+        if data == b'0':
+            i -= 1
+            if i < 0:
+                i = 4
+            print('Playing ' + songs[i])
+            pygame.mixer.music.stop()
+            pygame.mixer.music.load((path + songs[i]))
+            pygame.mixer.music.play()
         if data == b'1':
             i -= 1
             if i < 0:
