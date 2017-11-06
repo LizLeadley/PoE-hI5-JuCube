@@ -32,7 +32,7 @@ unsigned long previousMillis = 0;
 unsigned long currentMillis = 0;
 unsigned long debouncingMillis = 0;
 unsigned long lcdMillis = 0;
-int buttonCounter = 1;
+int lcdCounter = 1;
 
 void setup()   /*----( SETUP: RUNS ONCE )----*/
 {
@@ -70,15 +70,15 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
     if (buttonState != lastButtonState) {
       // if the state has changed (button has been pressed), increment the counter
       if (buttonState == HIGH) {
-        buttonCounter++;
-        Serial.println(buttonCounter);
+        lcdCounter++;
+        Serial.println(lcdCounter);
       }
     //reset the debounce timer
     debouncingMillis = currentMillis;
     }
   }
   lastButtonState = buttonState;
-  if (buttonCounter == 1) {
+  if (lcdCounter == 1) {
     //first song
     if (currentMillis - lcdMillis >= 500) {
       lcd.clear();
@@ -87,7 +87,7 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
       lcdMillis = currentMillis;
     }
   }
-  if (buttonCounter == 2) {
+  if (lcdCounter == 2) {
     //second song
     if (currentMillis - lcdMillis >= 500) {
       lcd.clear();
@@ -99,7 +99,7 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
     }
   }
   
-  if (buttonCounter == 3) {
+  if (lcdCounter == 3) {
     if (currentMillis - lcdMillis >= 500) {
       //third song
       lcd.clear();
@@ -109,7 +109,7 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
     }
   }
   
-  if (buttonCounter == 4) {
+  if (lcdCounter == 4) {
     if (currentMillis - lcdMillis >= 500) {
         //fourth song
       lcd.clear();
@@ -119,7 +119,7 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
     }
   }
   
-  if (buttonCounter == 5) {
+  if (lcdCounter == 5) {
     if (currentMillis - lcdMillis >= 500) {
       //fifth song
       lcd.clear();
@@ -129,8 +129,8 @@ void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
     }
   }
   
-  if (buttonCounter >= 6) {
-    buttonCounter = 1;
+  if (lcdCounter >= 6) {
+    lcdCounter = 1;
   }
 }/* --(end main loop )-- */
 
