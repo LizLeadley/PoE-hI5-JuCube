@@ -14,13 +14,13 @@ class Music_Player():
         pygame.mixer.init()
         self.display = pygame.display.set_caption('Music Player')
         self.blue = (0, 0, 255)
-        self.size = [640,480]
+        self.size = [200,200]
         self.screen = pygame.display.set_mode(self.size)
         self.clock = pygame.time.Clock()
 
     def filesfolder(self):
         files = []
-        path = 'C:/Users/apayano/Documents/GitHub/PoE-hI5-JuCube/Music player/Music/'
+        path = 'C:/Users/mlao/Documents/PoE-hI5-JuCube/Music player/Music/'
         directory = os.listdir(path)
         for filename in directory:
             if filename.endswith(".mp3"):
@@ -38,30 +38,32 @@ musicplayer = Music_Player()
 songs = musicplayer.filesfolder()
 print(songs)
 sound = musicplayer.picksong()
-arduino = serial.Serial('COM12', 9600, timeout=.1)
+arduino = serial.Serial('COM5', 9600, timeout=.1)
 
 def events(player, songs):
-    i = 1
-    path = 'C:/Users/apayano/Documents/GitHub/PoE-hI5-JuCube/Music player/Music/'
+    i = -1
+    path = 'C:/Users/mlao/Documents/PoE-hI5-JuCube/Music player/Music/'
     while True:
         data = arduino.readline()[:-2]
-        if data == b'1':
+        if data == '1':
             i -= 1
             if i < 0:
                 i = 4
-            print('Playing ' + songs[i])
+            print(songs[i])
+        if data == '2':
+            print("Loading " + songs[i])
             pygame.mixer.music.load((path + songs[i]))
-        if data == b'2':
-            i += 1
-            if i > 4:
-                i = 0
-            print('Playing ' + songs[i])
-            pygame.mixer.music.load((path + songs[i]))
-        if data == b'01':
-            pygame.mixer.music.stop()
-            pygame.mixer.music.play()
-        if data == b'02'
-            pygame.mixer.music.stop()
+        if data == '01':
+            if pygame.mixer.music.get_busy() == False:
+                pygame.mixer.music.stop()
+                pygame.mixer.music.play()
+            else:
+                pygame.mixer.music.unpause()
+            print('Playing')
+        if data == '02':
+            pygame.mixer.music.pause()
+            print('Paused')
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -75,7 +77,4 @@ def events(player, songs):
 
 musicplayer = Music_Player()
 files = musicplayer.filesfolder()
-
-print('press p - play sound')
-print('press c - change song')
 events(musicplayer,songs)
