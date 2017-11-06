@@ -12,15 +12,18 @@ class Music_Player():
     def __init__(self):
         pygame.init()
         pygame.mixer.init()
+        pygame.font.init()
         self.display = pygame.display.set_caption('Music Player')
-        self.blue = (0, 0, 255)
-        self.size = [200,200]
+        self.blue = (0, 100, 205)
+        self.size = [640,480]
         self.screen = pygame.display.set_mode(self.size)
         self.clock = pygame.time.Clock()
+        self.myfont = pygame.font.SysFont("freesandbold", 50)
+        self.label = self.myfont.render("JuCube", True, (0,255,0))
 
     def filesfolder(self):
         files = []
-        path = 'C:/Users/mlao/Documents/PoE-hI5-JuCube/Music player/Music/'
+        path = 'C:/Users/apayano/Documents/GitHub/PoE-hI5-JuCube/Music player/Music/'
         directory = os.listdir(path)
         for filename in directory:
             if filename.endswith(".mp3"):
@@ -36,33 +39,49 @@ class Music_Player():
 
 musicplayer = Music_Player()
 songs = musicplayer.filesfolder()
-print(songs)
 sound = musicplayer.picksong()
-arduino = serial.Serial('COM5', 9600, timeout=.1)
+arduino = serial.Serial('COM12', 9600, timeout=.1)
 
 def events(player, songs):
     i = -1
-    path = 'C:/Users/mlao/Documents/PoE-hI5-JuCube/Music player/Music/'
+    loaded = False
+    path = 'C:/Users/apayano/Documents/GitHub/PoE-hI5-JuCube/Music player/Music/'
+
     while True:
         data = arduino.readline()[:-2]
-        if data == '1':
+        if data == b'1':
             i -= 1
             if i < 0:
                 i = 4
             print(songs[i])
-        if data == '2':
+            song = songs[i]
+            songlen = len(songs[i])
+            songname = song[:songlen-4]
+            player.label = player.myfont.render(songname, True, (0,255,0))
+        if data == b'2':
             print("Loading " + songs[i])
+            player.label = player.myfont.render("Loading", True, (0,255,0))
             pygame.mixer.music.load((path + songs[i]))
-        if data == '01':
-            if pygame.mixer.music.get_busy() == False:
-                pygame.mixer.music.stop()
-                pygame.mixer.music.play()
+            loaded = True
+        if data == b'01':
+            if loaded == False:
+                print('Load a song!')
             else:
-                pygame.mixer.music.unpause()
-            print('Playing')
-        if data == '02':
-            pygame.mixer.music.pause()
-            print('Paused')
+                if pygame.mixer.music.get_busy() == False:
+                    pygame.mixer.music.stop()
+                    pygame.mixer.music.play()
+                    player.label = player.myfont.render("Playing", True, (0,255,0))
+                else:
+                    pygame.mixer.music.unpause()
+                print('Playing')
+        if data == b'02':
+            if loaded == False:
+                print('Load a song!')
+                player.label = player.myfont.render("Load a song!", True, (0,255,0))
+            else:
+                pygame.mixer.music.pause()
+                player.label = player.myfont.render("Paused", True, (0,255,0))
+                print('Paused')
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -74,6 +93,8 @@ def events(player, songs):
                     sys.exit()
         player.screen.fill(player.blue)
         pygame.display.update()
+        player.screen.blit(player.label, (320 - player.label.get_width() // 2, 240 - player.label.get_height() // 2))
+        pygame.display.flip()
 
 musicplayer = Music_Player()
 files = musicplayer.filesfolder()
