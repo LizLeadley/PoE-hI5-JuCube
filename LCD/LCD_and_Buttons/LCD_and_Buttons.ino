@@ -205,3 +205,11 @@ void loop(){
   }
 }
 
+void setColor(uint32_t color) {
+  uint16_t i;
+  for(i=0; i<strip.numPixels(); i++) {
+    strip.setPixelColor(i, color);
+  }
+  strip.show();
+}
+
