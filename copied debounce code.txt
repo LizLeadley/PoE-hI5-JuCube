@@ -1,0 +1,41 @@
+//Before Setup
+
+const int debounceDelay = 50;  //Assumed time for debounce to cease
+
+
+// start variables
+//button stuff
+int bState;                           //Current button state
+int prevBState = digitalRead(bPin);   //Previous button state
+unsigned long prevDebounceTime = 0;   //Debounce timer
+
+unsigned long currMillis = millis();  //State switching timer
+
+
+//Inside Loop
+if (checkButton() ==1) {
+//buttonCounter++ would go here
+}
+
+
+//After loop
+
+int checkButton() {
+  int retVal = 0;
+  int reading = digitalRead(bPin);
+  if (reading != prevBState) {
+    prevDebounceTime = millis();
+  }
+
+  if ((millis() - prevDebounceTime) > debounceDelay) {
+    if (reading != bState) {
+      bState = reading;
+
+      if (bState == HIGH) {
+        retVal = 1;
+      }
+    }
+  }
+  prevBState = reading;
+  return retVal;
+}
