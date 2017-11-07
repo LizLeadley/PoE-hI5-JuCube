@@ -3,6 +3,14 @@
  */
 #include <LiquidCrystal_I2C.h>
 
+#include <Adafruit_NeoPixel.h>
+#ifdef __AVR__
+  #include <avr/power.h>
+#endif
+
+#define PIN 6
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, PIN, NEO_GRB + NEO_KHZ800);
+
 const byte button1 = 2; //green
 const byte button2 = 3; //blue
 const byte button3 = 4;
@@ -26,6 +34,15 @@ unsigned long lcdMillis = 0;
 unsigned long currentMillis = 0;
 unsigned long debouncingMillis = 0;
 
+//LED STRIP STUFF
+int prevVal = 0; //previous value for cleaning high frequencies
+int signalRead = A0; //input pin from transistor signal
+uint32_t hotPink = strip.Color(255, 25, 128); 
+double pink_r_g = 25.0/255.0;
+double pink_r_b = 128.0/255.0;
+uint32_t blue = strip.Color(35, 73, 224);
+double blue_b_r = 35.0/224.0; //blue ratio for blue to red
+double blue_b_g = 73/224.0;  //blue ratio for blue to green
 
 // setup routine runs once when you press reset (only runs once)
 void setup() {
@@ -33,7 +50,18 @@ void setup() {
     pinMode(button1,INPUT);
     pinMode(button2,INPUT);
     pinMode(button3,INPUT);  
-
+    
+    //LED STRIP SETUP
+      pinMode(signalRead, INPUT); //set the analog pin as an input
+      // This is for Trinket 5V 16MHz, you can remove these three lines if you are not using a Trinket
+      #if defined (__AVR_ATtiny85__)
+        if (F_CPU == 16000000) clock_prescale_set(clock_div_1);
+      #endif
+      // End of trinket special code
+      strip.begin();
+      strip.show(); // Initialize all pixels to 'off'
+      strip.setBrightness(240);
+    
     lcd.begin(16,2);   // initialize the lcd for 16 chars 2 lines, turn on backlight
   // ------- Quick 3 blinks of backlight  -------------
     for(int i = 0; i< 3; i++)
@@ -60,7 +88,19 @@ void loop(){
     button3State = digitalRead(button3);
     // start timer
     currentMillis = millis();
+  //LED STRIP CODE:
+      double val = analogRead(signalRead);
+      if ( val > 15 ) {
+      val = 700;
+      }
+      double newVal = map(val, 0, 1023, 0, 200);
+      double giveVal = round(.5*(newVal+prevVal));
 
+      uint32_t pinkBeat = strip.Color(giveVal,giveVal*(pink_r_g),giveVal*(pink_r_b)); //uses relative rgb values for pink
+      uint32_t blueBeat = strip.Color(giveVal*(blue_b_r), giveVal*(blue_b_g), giveVal); //uses relative rgb values for blue
+      setColor(blueBeat); //can be either pinkBeat or blueBeat
+      prevVal = newVal;
+    
   //button1 debounce (choose song)
   if (currentMillis - debouncingMillis >= 50) {
     //check to see if button has been pressed
