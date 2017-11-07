@@ -7,9 +7,12 @@
 #ifdef __AVR__
   #include <avr/power.h>
 #endif
+#include <Servo.h>
 
 #define PIN 6
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, PIN, NEO_GRB + NEO_KHZ800);
+
+Servo needle_tilt_servo; // creates servo object
 
 const byte button1 = 2; //green
 const byte button2 = 3; //blue
@@ -44,6 +47,12 @@ uint32_t blue = strip.Color(35, 73, 224);
 double blue_b_r = 35.0/224.0; //blue ratio for blue to red
 double blue_b_g = 73/224.0;  //blue ratio for blue to green
 
+int pos = 0; // position, for servo sweep iterator
+float servo_step = 1; // step size for servo sweep
+unsigned int servo_delay = 20;
+unsigned int prev_millis = 0;
+unsigned int cur_millis = millis();
+
 // setup routine runs once when you press reset (only runs once)
 void setup() {
     pinMode(signalRead, INPUT); //set the analog pin as an input
@@ -59,7 +68,9 @@ void setup() {
     Serial.begin(9600);
     pinMode(button1,INPUT);
     pinMode(button2,INPUT);
-    pinMode(button3,INPUT);  
+    pinMode(button3,INPUT);
+
+    needle_tilt_servo.attach(5); // attaches servo to pin 5
     
     lcd.begin(16,2);   // initialize the lcd for 16 chars 2 lines, turn on backlight
   // ------- Quick 3 blinks of backlight  -------------
@@ -112,6 +123,9 @@ void loop(){
           lcdCounter = 5;
         }
         Serial.println("1");
+        // lift and lower record needle
+        new_song_tilt(needle_tilt_servo, servo_delay);
+        
       } 
       //reset the debounce timer
       debouncingMillis = currentMillis;
@@ -125,6 +139,8 @@ void loop(){
       if (button2State == HIGH) {
         Serial.println("2");
         button3Counter = 0;
+        // lift and lower record needle
+        new_song_tilt(needle_tilt_servo, servo_delay);
       } 
       //reset the debounce timer
       debouncingMillis = currentMillis;
@@ -139,6 +155,8 @@ void loop(){
         button3Counter++;
         Serial.print("0");
         Serial.println(button3Counter);
+        
+        new_song_tilt(needle_tilt_servo, servo_delay)
       } 
       //reset the debounce timer
       debouncingMillis = currentMillis;
@@ -211,4 +229,70 @@ void setColor(uint32_t color) {
   }
   strip.show();
 }
+
+void loop() {
+  cur_millis = millis();
+  if (cur_millis - prev_millis > 1000) {
+    prev_millis += 1000;
+    new_song_tilt(needle_tilt_servo, servo_delay);
+  }
+
+//  new_song_tilt(needle_tilt_servo, servo_delay);
+//  delay(500);
+  
+}
+
+int new_song_tilt(Servo needle_tilt_servo, unsigned int servo_delay) {
+  tilt_up(needle_tilt_servo, servo_delay);
+  tilt_down(needle_tilt_servo, servo_delay);
+}
+
+int tilt_up(Servo needle_tilt_servo, unsigned int servo_delay) {
+  unsigned int prev_millis = 0;
+  boolean servo_step_move_done = false;
+  boolean running_correctly = true;
+  boolean needle_move_up_done = false;
+  int pos = 0;
+  while(!needle_move_up_done){
+    unsigned int cur_millis = millis(); 
+    // if it has, check that the delay has passed
+    if (cur_millis - prev_millis >= servo_delay) {
+      // update prev_millis
+      prev_millis += servo_delay;
+      if (++pos > 90) {
+        needle_move_up_done = true;
+      }
+      else {
+        needle_tilt_servo.write(pos);
+        servo_step_move_done = true;
+        pos ++;
+      }
+    }
+}
+}
+
+int tilt_down(Servo needle_tilt_servo, unsigned int servo_delay) {
+  unsigned int prev_millis = 0;
+  boolean servo_step_move_done = false;
+  boolean running_correctly = true;
+  boolean needle_move_down_done = false;
+  int pos = 90;
+  while(!needle_move_down_done){
+    unsigned int cur_millis = millis();
+    // if it has, check that the delay has passed
+    if (cur_millis - prev_millis >= servo_delay) {
+      // update prev_millis
+      prev_millis += servo_delay;
+      if (--pos < 0) {
+        needle_move_down_done = true;
+      }
+      else {
+        needle_tilt_servo.write(pos);
+        servo_step_move_done = true;
+        pos --;
+      }
+    }
+}
+}
+
 
