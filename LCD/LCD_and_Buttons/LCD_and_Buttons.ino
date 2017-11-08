@@ -1,3 +1,4 @@
+
 /* 
  *  Buttons and LED Strip
  */
@@ -51,7 +52,11 @@ int pos = 0; // position, for servo sweep iterator
 float servo_step = 1; // step size for servo sweep
 unsigned int servo_delay = 20;
 unsigned int prev_millis = 0;
-unsigned int cur_millis = millis();
+unsigned int cur_millis = 0;
+
+// runs all tests if true
+bool debug = false;
+bool paused = true;
 
 // setup routine runs once when you press reset (only runs once)
 void setup() {
@@ -88,10 +93,18 @@ void setup() {
     lcd.setCursor(5,0); //Start at character 4 on line 0
     lcd.print("JuCube");
     delay(1000);
+
+  // lift and lower record needle
+  new_song_tilt(needle_tilt_servo, servo_delay);
+
+  if (debug) {
+    servo_test();  
+  }
 }
 
 // put your main code here, to run repeatedly
 void loop(){
+    new_song_tilt(needle_tilt_servo, servo_delay);
     // read the pushbutton input pin:
     button1State = digitalRead(button1);
     button2State = digitalRead(button2);
@@ -113,12 +126,7 @@ void loop(){
 
 
       cur_millis = millis();
-      if (cur_millis - prev_millis > 1000) {
-        prev_millis += 1000;
-        new_song_tilt(needle_tilt_servo, servo_delay);
-      }
-    
-    //  new_song_tilt(needle_tilt_servo, servo_delay);
+   
     //  delay(500);
     
   //button1 debounce (choose song)
@@ -133,9 +141,6 @@ void loop(){
           lcdCounter = 5;
         }
         Serial.println("1");
-        // lift and lower record needle
-        new_song_tilt(needle_tilt_servo, servo_delay);
-        
       } 
       //reset the debounce timer
       debouncingMillis = currentMillis;
@@ -149,8 +154,6 @@ void loop(){
       if (button2State == HIGH) {
         Serial.println("2");
         button3Counter = 0;
-        // lift and lower record needle
-        new_song_tilt(needle_tilt_servo, servo_delay);
       } 
       //reset the debounce timer
       debouncingMillis = currentMillis;
@@ -163,6 +166,7 @@ void loop(){
       // if the state has changed (button has been pressed), increment the counter
       if (button3State == HIGH) {
         button3Counter++;
+
         Serial.print("0");
         Serial.println(button3Counter);
         
@@ -177,6 +181,8 @@ void loop(){
   lastButton1State = button1State;
   lastButton2State = button2State;
   lastButton3State = button3State;
+
+
 
   if (lcdCounter == 1) {
     //first song
@@ -228,6 +234,10 @@ void loop(){
       lcdMillis = currentMillis;
     }
   }
+//  // tilt needle in new song starts playing
+//  if (paused && button3Counter == 2) {
+//    new_song_tilt(needle_tilt_servo, servo_delay);
+//  }
 
 }
 
@@ -239,12 +249,12 @@ void setColor(uint32_t color) {
   strip.show();
 }
 
-int new_song_tilt(Servo needle_tilt_servo, unsigned int servo_delay) {
+void new_song_tilt(Servo needle_tilt_servo, unsigned int servo_delay) {
   tilt_up(needle_tilt_servo, servo_delay);
   tilt_down(needle_tilt_servo, servo_delay);
 }
 
-int tilt_up(Servo needle_tilt_servo, unsigned int servo_delay) {
+void tilt_up(Servo needle_tilt_servo, unsigned int servo_delay) {
   unsigned int prev_millis = 0;
   boolean servo_step_move_done = false;
   boolean running_correctly = true;
@@ -268,10 +278,9 @@ int tilt_up(Servo needle_tilt_servo, unsigned int servo_delay) {
 }
 }
 
-int tilt_down(Servo needle_tilt_servo, unsigned int servo_delay) {
+void tilt_down(Servo needle_tilt_servo, unsigned int servo_delay) {
   unsigned int prev_millis = 0;
   boolean servo_step_move_done = false;
-  boolean running_correctly = true;
   boolean needle_move_down_done = false;
   int pos = 90;
   while(!needle_move_down_done){
@@ -290,6 +299,13 @@ int tilt_down(Servo needle_tilt_servo, unsigned int servo_delay) {
       }
     }
 }
+}
+
+void servo_test(){
+  // test servo
+  needle_tilt_servo.write(90);
+  lcd.clear();
+  lcd.print("Sevo Test");
 }
 
 
