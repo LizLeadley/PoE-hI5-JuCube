@@ -110,6 +110,16 @@ void loop(){
       uint32_t blueBeat = strip.Color(giveVal*(blue_b_r), giveVal*(blue_b_g), giveVal); //uses relative rgb values for blue
       setColor(blueBeat); //can be either pinkBeat or blueBeat
       prevVal = newVal;
+
+
+      cur_millis = millis();
+      if (cur_millis - prev_millis > 1000) {
+        prev_millis += 1000;
+        new_song_tilt(needle_tilt_servo, servo_delay);
+      }
+    
+    //  new_song_tilt(needle_tilt_servo, servo_delay);
+    //  delay(500);
     
   //button1 debounce (choose song)
   if (currentMillis - debouncingMillis >= 50) {
@@ -156,7 +166,6 @@ void loop(){
         Serial.print("0");
         Serial.println(button3Counter);
         
-        new_song_tilt(needle_tilt_servo, servo_delay)
       } 
       //reset the debounce timer
       debouncingMillis = currentMillis;
@@ -170,38 +179,47 @@ void loop(){
   lastButton3State = button3State;
 
   if (lcdCounter == 1) {
-    //second song
+    //first song
     if (currentMillis - lcdMillis >= 500) {
       lcd.clear();
       lcd.setCursor(0,0); //Start at character 4 on line 0
-      lcd.print("I Love");
-      lcd.setCursor(0,1);
-      lcd.print("Rock and Roll");
+      lcd.print("Eye of the Tiger");
       lcdMillis = currentMillis;
     }
   }
-  
   if (lcdCounter == 2) {
+    //second song
     if (currentMillis - lcdMillis >= 500) {
-      //third song
       lcd.clear();
-      lcd.setCursor(0,0); //Start at character 4 on line 0
-      lcd.print("Jukebox Hero");
+      lcd.setCursor(5,0); //Start at character 4 on line 0
+      lcd.print("I Love");
+      lcd.setCursor(2,1);
+      lcd.print("Rock N Roll");
       lcdMillis = currentMillis;
     }
   }
   
   if (lcdCounter == 3) {
     if (currentMillis - lcdMillis >= 500) {
-        //fourth song
+      //third song
       lcd.clear();
-      lcd.setCursor(0,0); //Start at character 4 on line 0
-      lcd.print("Shape of You");
+      lcd.setCursor(2,0); //Start at character 4 on line 0
+      lcd.print("Jukebox Hero");
       lcdMillis = currentMillis;
     }
   }
   
   if (lcdCounter == 4) {
+    if (currentMillis - lcdMillis >= 500) {
+        //fourth song
+      lcd.clear();
+      lcd.setCursor(2,0); //Start at character 4 on line 0
+      lcd.print("Shape of You");
+      lcdMillis = currentMillis;
+    }
+  }
+  
+  if (lcdCounter == 5) {
     if (currentMillis - lcdMillis >= 500) {
       //fifth song
       lcd.clear();
@@ -211,15 +229,6 @@ void loop(){
     }
   }
 
-  if (lcdCounter == 5) {
-    //first song
-    if (currentMillis - lcdMillis >= 500) {
-      lcd.clear();
-      lcd.setCursor(0,0); //Start at character 4 on line 0
-      lcd.print("Eye of the Tiger");
-      lcdMillis = currentMillis;
-    }
-  }
 }
 
 void setColor(uint32_t color) {
@@ -228,18 +237,6 @@ void setColor(uint32_t color) {
     strip.setPixelColor(i, color);
   }
   strip.show();
-}
-
-void loop() {
-  cur_millis = millis();
-  if (cur_millis - prev_millis > 1000) {
-    prev_millis += 1000;
-    new_song_tilt(needle_tilt_servo, servo_delay);
-  }
-
-//  new_song_tilt(needle_tilt_servo, servo_delay);
-//  delay(500);
-  
 }
 
 int new_song_tilt(Servo needle_tilt_servo, unsigned int servo_delay) {
