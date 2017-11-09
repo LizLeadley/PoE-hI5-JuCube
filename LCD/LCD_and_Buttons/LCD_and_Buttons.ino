@@ -56,7 +56,9 @@ unsigned int cur_millis = 0;
 
 // runs all tests if true
 bool debug = false;
-bool paused = true;
+
+// music paused boolean
+bool paused = false;
 
 // setup routine runs once when you press reset (only runs once)
 void setup() {
@@ -75,7 +77,9 @@ void setup() {
     pinMode(button2,INPUT);
     pinMode(button3,INPUT);
 
-    needle_tilt_servo.attach(5); // attaches servo to pin 5
+    needle_tilt_servo.attach(9); // attaches servo to pin 5
+
+    needle_tilt_servo.write(90);
     
     lcd.begin(16,2);   // initialize the lcd for 16 chars 2 lines, turn on backlight
   // ------- Quick 3 blinks of backlight  -------------
@@ -95,7 +99,7 @@ void setup() {
     delay(1000);
 
   // lift and lower record needle
-  new_song_tilt(needle_tilt_servo, servo_delay);
+  //new_song_tilt(needle_tilt_servo, servo_delay);
 
   if (debug) {
     servo_test();  
@@ -104,7 +108,10 @@ void setup() {
 
 // put your main code here, to run repeatedly
 void loop(){
-    new_song_tilt(needle_tilt_servo, servo_delay);
+
+//return;
+  
+    //new_song_tilt(needle_tilt_servo, servo_delay);
     // read the pushbutton input pin:
     button1State = digitalRead(button1);
     button2State = digitalRead(button2);
@@ -118,17 +125,24 @@ void loop(){
       }
       double newVal = map(val, 0, 1023, 0, 200);
       double giveVal = round(.5*(newVal+prevVal));
-
       uint32_t pinkBeat = strip.Color(giveVal,giveVal*(pink_r_g),giveVal*(pink_r_b)); //uses relative rgb values for pink
+
       uint32_t blueBeat = strip.Color(giveVal*(blue_b_r), giveVal*(blue_b_g), giveVal); //uses relative rgb values for blue
+
       setColor(blueBeat); //can be either pinkBeat or blueBeat
+            return;
       prevVal = newVal;
+return;
 
 
       cur_millis = millis();
    
     //  delay(500);
-    
+
+
+//return;
+
+ 
   //button1 debounce (choose song)
   if (currentMillis - debouncingMillis >= 50) {
     //check to see if button has been pressed
@@ -166,10 +180,11 @@ void loop(){
       // if the state has changed (button has been pressed), increment the counter
       if (button3State == HIGH) {
         button3Counter++;
-
         Serial.print("0");
         Serial.println(button3Counter);
-        
+        if (paused) {
+          paused = false;
+        }
       } 
       //reset the debounce timer
       debouncingMillis = currentMillis;
@@ -181,7 +196,6 @@ void loop(){
   lastButton1State = button1State;
   lastButton2State = button2State;
   lastButton3State = button3State;
-
 
 
   if (lcdCounter == 1) {
@@ -235,9 +249,9 @@ void loop(){
     }
   }
 //  // tilt needle in new song starts playing
-//  if (paused && button3Counter == 2) {
-//    new_song_tilt(needle_tilt_servo, servo_delay);
-//  }
+  if (paused) {
+      //new_song_tilt(needle_tilt_servo, servo_delay);
+  }
 
 }
 
