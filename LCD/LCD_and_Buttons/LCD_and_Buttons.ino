@@ -46,6 +46,12 @@ double pink_r_b = 128.0/255.0;
 uint32_t blue = strip.Color(35, 73, 224);
 double blue_b_r = 35.0/224.0; //blue ratio for blue to red
 double blue_b_g = 73/224.0;  //blue ratio for blue to green
+double green_g_r = 66.0/244.0;
+double green_g_b = 197.0/244.0;
+double orange_o_b = 10.0/255.0;
+double orange_o_g = 60.0/255.0; 
+
+
 
 int pos = 0; // position, for servo sweep iterator
 float servo_step = 1; // step size for servo sweep
@@ -63,7 +69,7 @@ void setup() {
     // End of trinket special code
     strip.begin();
     strip.show(); // Initialize all pixels to 'off'
-    strip.setBrightness(240); //set max brightness
+    strip.setBrightness(245); //set max brightness
     
     Serial.begin(9600);
     pinMode(button1,INPUT);
@@ -108,7 +114,10 @@ void loop(){
 
       uint32_t pinkBeat = strip.Color(giveVal,giveVal*(pink_r_g),giveVal*(pink_r_b)); //uses relative rgb values for pink
       uint32_t blueBeat = strip.Color(giveVal*(blue_b_r), giveVal*(blue_b_g), giveVal); //uses relative rgb values for blue
-      setColor(blueBeat); //can be either pinkBeat or blueBeat
+      uint32_t greenBeat = strip.Color(giveVal*(green_g_r), giveVal, giveVal*(green_g_b)); //relative color for green
+      uint32_t orangeBeat = strip.Color(giveVal, giveVal*(orange_o_g), giveVal*(orange_o_b)); //relative color for orange
+      //setColor(orangeBeat); //set initial color
+      setTwoColor(pinkBeat, blueBeat);
       prevVal = newVal;
 
 
@@ -235,6 +244,18 @@ void setColor(uint32_t color) {
   uint16_t i;
   for(i=0; i<strip.numPixels(); i++) {
     strip.setPixelColor(i, color);
+  }
+  strip.show();
+}
+
+void setTwoColor(uint32_t color1, uint32_t color2) {
+  uint16_t i;
+  for(i=0; i<strip.numPixels()/2; i++) {
+    strip.setPixelColor(i, color1);
+  }
+  strip.show();
+  for(i=strip.numPixels()/2; i<strip.numPixels(); i++) {
+    strip.setPixelColor(i, color2);
   }
   strip.show();
 }
