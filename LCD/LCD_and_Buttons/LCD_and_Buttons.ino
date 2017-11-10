@@ -1,4 +1,3 @@
-
 /* 
  *  Buttons and LED Strip
  */
@@ -58,13 +57,7 @@ int pos = 0; // position, for servo sweep iterator
 float servo_step = 1; // step size for servo sweep
 unsigned int servo_delay = 20;
 unsigned int prev_millis = 0;
-unsigned int cur_millis = 0;
-
-// runs all tests if true
-bool debug = false;
-
-// music paused boolean
-bool paused = false;
+unsigned int cur_millis = millis();
 
 // setup routine runs once when you press reset (only runs once)
 void setup() {
@@ -83,9 +76,7 @@ void setup() {
     pinMode(button2,INPUT);
     pinMode(button3,INPUT);
 
-    needle_tilt_servo.attach(9); // attaches servo to pin 5
-
-    needle_tilt_servo.write(90);
+    needle_tilt_servo.attach(5); // attaches servo to pin 5
     
     lcd.begin(16,2);   // initialize the lcd for 16 chars 2 lines, turn on backlight
   // ------- Quick 3 blinks of backlight  -------------
@@ -103,21 +94,10 @@ void setup() {
     lcd.setCursor(5,0); //Start at character 4 on line 0
     lcd.print("JuCube");
     delay(1000);
-
-  // lift and lower record needle
-  //new_song_tilt(needle_tilt_servo, servo_delay);
-
-  if (debug) {
-    servo_test();  
-  }
 }
 
 // put your main code here, to run repeatedly
 void loop(){
-
-//return;
-  
-    //new_song_tilt(needle_tilt_servo, servo_delay);
     // read the pushbutton input pin:
     button1State = digitalRead(button1);
     button2State = digitalRead(button2);
@@ -131,31 +111,25 @@ void loop(){
       }
       double newVal = map(val, 0, 1023, 0, 200);
       double giveVal = round(.5*(newVal+prevVal));
-      uint32_t pinkBeat = strip.Color(giveVal,giveVal*(pink_r_g),giveVal*(pink_r_b)); //uses relative rgb values for pink
 
+      uint32_t pinkBeat = strip.Color(giveVal,giveVal*(pink_r_g),giveVal*(pink_r_b)); //uses relative rgb values for pink
       uint32_t blueBeat = strip.Color(giveVal*(blue_b_r), giveVal*(blue_b_g), giveVal); //uses relative rgb values for blue
-<<<<<<< HEAD
       uint32_t greenBeat = strip.Color(giveVal*(green_g_r), giveVal, giveVal*(green_g_b)); //relative color for green
       uint32_t orangeBeat = strip.Color(giveVal, giveVal*(orange_o_g), giveVal*(orange_o_b)); //relative color for orange
       //setColor(orangeBeat); //set initial color
       setTwoColor(pinkBeat, blueBeat);
-=======
-
-      setColor(blueBeat); //can be either pinkBeat or blueBeat
-            return;
->>>>>>> 371c36b5db1b96e2a177f66d1fde14b22e529928
       prevVal = newVal;
-return;
 
 
       cur_millis = millis();
-   
+      if (cur_millis - prev_millis > 1000) {
+        prev_millis += 1000;
+        new_song_tilt(needle_tilt_servo, servo_delay);
+      }
+    
+    //  new_song_tilt(needle_tilt_servo, servo_delay);
     //  delay(500);
-
-
-//return;
-
- 
+    
   //button1 debounce (choose song)
   if (currentMillis - debouncingMillis >= 50) {
     //check to see if button has been pressed
@@ -168,6 +142,9 @@ return;
           lcdCounter = 5;
         }
         Serial.println("1");
+        // lift and lower record needle
+        new_song_tilt(needle_tilt_servo, servo_delay);
+        
       } 
       //reset the debounce timer
       debouncingMillis = currentMillis;
@@ -181,6 +158,8 @@ return;
       if (button2State == HIGH) {
         Serial.println("2");
         button3Counter = 0;
+        // lift and lower record needle
+        new_song_tilt(needle_tilt_servo, servo_delay);
       } 
       //reset the debounce timer
       debouncingMillis = currentMillis;
@@ -195,9 +174,7 @@ return;
         button3Counter++;
         Serial.print("0");
         Serial.println(button3Counter);
-        if (paused) {
-          paused = false;
-        }
+        
       } 
       //reset the debounce timer
       debouncingMillis = currentMillis;
@@ -209,7 +186,6 @@ return;
   lastButton1State = button1State;
   lastButton2State = button2State;
   lastButton3State = button3State;
-
 
   if (lcdCounter == 1) {
     //first song
@@ -261,10 +237,6 @@ return;
       lcdMillis = currentMillis;
     }
   }
-//  // tilt needle in new song starts playing
-  if (paused) {
-      //new_song_tilt(needle_tilt_servo, servo_delay);
-  }
 
 }
 
@@ -276,7 +248,6 @@ void setColor(uint32_t color) {
   strip.show();
 }
 
-<<<<<<< HEAD
 void setTwoColor(uint32_t color1, uint32_t color2) {
   uint16_t i;
   for(i=0; i<strip.numPixels()/2; i++) {
@@ -290,14 +261,11 @@ void setTwoColor(uint32_t color1, uint32_t color2) {
 }
 
 int new_song_tilt(Servo needle_tilt_servo, unsigned int servo_delay) {
-=======
-void new_song_tilt(Servo needle_tilt_servo, unsigned int servo_delay) {
->>>>>>> 371c36b5db1b96e2a177f66d1fde14b22e529928
   tilt_up(needle_tilt_servo, servo_delay);
   tilt_down(needle_tilt_servo, servo_delay);
 }
 
-void tilt_up(Servo needle_tilt_servo, unsigned int servo_delay) {
+int tilt_up(Servo needle_tilt_servo, unsigned int servo_delay) {
   unsigned int prev_millis = 0;
   boolean servo_step_move_done = false;
   boolean running_correctly = true;
@@ -321,9 +289,10 @@ void tilt_up(Servo needle_tilt_servo, unsigned int servo_delay) {
 }
 }
 
-void tilt_down(Servo needle_tilt_servo, unsigned int servo_delay) {
+int tilt_down(Servo needle_tilt_servo, unsigned int servo_delay) {
   unsigned int prev_millis = 0;
   boolean servo_step_move_done = false;
+  boolean running_correctly = true;
   boolean needle_move_down_done = false;
   int pos = 90;
   while(!needle_move_down_done){
@@ -342,13 +311,6 @@ void tilt_down(Servo needle_tilt_servo, unsigned int servo_delay) {
       }
     }
 }
-}
-
-void servo_test(){
-  // test servo
-  needle_tilt_servo.write(90);
-  lcd.clear();
-  lcd.print("Sevo Test");
 }
 
 
