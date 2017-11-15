@@ -7,9 +7,12 @@
 #ifdef __AVR__
   #include <avr/power.h>
 #endif
+#include <Servo.h>
 
 #define PIN 6
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, PIN, NEO_GRB + NEO_KHZ800);
+
+Servo needle_tilt_servo; // creates servo object
 
 const byte button1 = 2; //green
 const byte button2 = 3; //blue
@@ -43,24 +46,37 @@ double pink_r_b = 128.0/255.0;
 uint32_t blue = strip.Color(35, 73, 224);
 double blue_b_r = 35.0/224.0; //blue ratio for blue to red
 double blue_b_g = 73/224.0;  //blue ratio for blue to green
+double green_g_r = 66.0/244.0;
+double green_g_b = 197.0/244.0;
+double orange_o_b = 10.0/255.0;
+double orange_o_g = 60.0/255.0; 
+
+
+
+int pos = 0; // position, for servo sweep iterator
+float servo_step = 1; // step size for servo sweep
+unsigned int servo_delay = 20;
+unsigned int prev_millis = 0;
+unsigned int cur_millis = millis();
 
 // setup routine runs once when you press reset (only runs once)
 void setup() {
+    pinMode(signalRead, INPUT); //set the analog pin as an input
+    // This is for Trinket 5V 16MHz, you can remove these three lines if you are not using a Trinket
+    #if defined (__AVR_ATtiny85__)
+      if (F_CPU == 16000000) clock_prescale_set(clock_div_1);
+    #endif
+    // End of trinket special code
+    strip.begin();
+    strip.show(); // Initialize all pixels to 'off'
+    strip.setBrightness(245); //set max brightness
+    
     Serial.begin(9600);
     pinMode(button1,INPUT);
     pinMode(button2,INPUT);
-    pinMode(button3,INPUT);  
-    
-    //LED STRIP SETUP
-      pinMode(signalRead, INPUT); //set the analog pin as an input
-      // This is for Trinket 5V 16MHz, you can remove these three lines if you are not using a Trinket
-      #if defined (__AVR_ATtiny85__)
-        if (F_CPU == 16000000) clock_prescale_set(clock_div_1);
-      #endif
-      // End of trinket special code
-      strip.begin();
-      strip.show(); // Initialize all pixels to 'off'
-      strip.setBrightness(240);
+    pinMode(button3,INPUT);
+
+    needle_tilt_servo.attach(5); // attaches servo to pin 5
     
     lcd.begin(16,2);   // initialize the lcd for 16 chars 2 lines, turn on backlight
   // ------- Quick 3 blinks of backlight  -------------
@@ -98,8 +114,21 @@ void loop(){
 
       uint32_t pinkBeat = strip.Color(giveVal,giveVal*(pink_r_g),giveVal*(pink_r_b)); //uses relative rgb values for pink
       uint32_t blueBeat = strip.Color(giveVal*(blue_b_r), giveVal*(blue_b_g), giveVal); //uses relative rgb values for blue
-      setColor(blueBeat); //can be either pinkBeat or blueBeat
+      uint32_t greenBeat = strip.Color(giveVal*(green_g_r), giveVal, giveVal*(green_g_b)); //relative color for green
+      uint32_t orangeBeat = strip.Color(giveVal, giveVal*(orange_o_g), giveVal*(orange_o_b)); //relative color for orange
+      //setColor(orangeBeat); //set initial color
+      setTwoColor(pinkBeat, blueBeat);
       prevVal = newVal;
+
+
+      cur_millis = millis();
+      if (cur_millis - prev_millis > 1000) {
+        prev_millis += 1000;
+        new_song_tilt(needle_tilt_servo, servo_delay);
+      }
+    
+    //  new_song_tilt(needle_tilt_servo, servo_delay);
+    //  delay(500);
     
   //button1 debounce (choose song)
   if (currentMillis - debouncingMillis >= 50) {
@@ -113,6 +142,9 @@ void loop(){
           lcdCounter = 5;
         }
         Serial.println("1");
+        // lift and lower record needle
+        new_song_tilt(needle_tilt_servo, servo_delay);
+        
       } 
       //reset the debounce timer
       debouncingMillis = currentMillis;
@@ -126,6 +158,8 @@ void loop(){
       if (button2State == HIGH) {
         Serial.println("2");
         button3Counter = 0;
+        // lift and lower record needle
+        new_song_tilt(needle_tilt_servo, servo_delay);
       } 
       //reset the debounce timer
       debouncingMillis = currentMillis;
@@ -140,6 +174,7 @@ void loop(){
         button3Counter++;
         Serial.print("0");
         Serial.println(button3Counter);
+        
       } 
       //reset the debounce timer
       debouncingMillis = currentMillis;
@@ -153,38 +188,47 @@ void loop(){
   lastButton3State = button3State;
 
   if (lcdCounter == 1) {
-    //second song
+    //first song
     if (currentMillis - lcdMillis >= 500) {
       lcd.clear();
       lcd.setCursor(0,0); //Start at character 4 on line 0
-      lcd.print("I Love");
-      lcd.setCursor(0,1);
-      lcd.print("Rock and Roll");
+      lcd.print("Eye of the Tiger");
       lcdMillis = currentMillis;
     }
   }
-  
   if (lcdCounter == 2) {
+    //second song
     if (currentMillis - lcdMillis >= 500) {
-      //third song
       lcd.clear();
-      lcd.setCursor(0,0); //Start at character 4 on line 0
-      lcd.print("Jukebox Hero");
+      lcd.setCursor(5,0); //Start at character 4 on line 0
+      lcd.print("I Love");
+      lcd.setCursor(2,1);
+      lcd.print("Rock N Roll");
       lcdMillis = currentMillis;
     }
   }
   
   if (lcdCounter == 3) {
     if (currentMillis - lcdMillis >= 500) {
-        //fourth song
+      //third song
       lcd.clear();
-      lcd.setCursor(0,0); //Start at character 4 on line 0
-      lcd.print("Shape of You");
+      lcd.setCursor(2,0); //Start at character 4 on line 0
+      lcd.print("Jukebox Hero");
       lcdMillis = currentMillis;
     }
   }
   
   if (lcdCounter == 4) {
+    if (currentMillis - lcdMillis >= 500) {
+        //fourth song
+      lcd.clear();
+      lcd.setCursor(2,0); //Start at character 4 on line 0
+      lcd.print("Shape of You");
+      lcdMillis = currentMillis;
+    }
+  }
+  
+  if (lcdCounter == 5) {
     if (currentMillis - lcdMillis >= 500) {
       //fifth song
       lcd.clear();
@@ -194,15 +238,6 @@ void loop(){
     }
   }
 
-  if (lcdCounter == 5) {
-    //first song
-    if (currentMillis - lcdMillis >= 500) {
-      lcd.clear();
-      lcd.setCursor(0,0); //Start at character 4 on line 0
-      lcd.print("Eye of the Tiger");
-      lcdMillis = currentMillis;
-    }
-  }
 }
 
 void setColor(uint32_t color) {
@@ -212,4 +247,70 @@ void setColor(uint32_t color) {
   }
   strip.show();
 }
+
+void setTwoColor(uint32_t color1, uint32_t color2) {
+  uint16_t i;
+  for(i=0; i<strip.numPixels()/2; i++) {
+    strip.setPixelColor(i, color1);
+  }
+  strip.show();
+  for(i=strip.numPixels()/2; i<strip.numPixels(); i++) {
+    strip.setPixelColor(i, color2);
+  }
+  strip.show();
+}
+
+int new_song_tilt(Servo needle_tilt_servo, unsigned int servo_delay) {
+  tilt_up(needle_tilt_servo, servo_delay);
+  tilt_down(needle_tilt_servo, servo_delay);
+}
+
+int tilt_up(Servo needle_tilt_servo, unsigned int servo_delay) {
+  unsigned int prev_millis = 0;
+  boolean servo_step_move_done = false;
+  boolean running_correctly = true;
+  boolean needle_move_up_done = false;
+  int pos = 0;
+  while(!needle_move_up_done){
+    unsigned int cur_millis = millis(); 
+    // if it has, check that the delay has passed
+    if (cur_millis - prev_millis >= servo_delay) {
+      // update prev_millis
+      prev_millis += servo_delay;
+      if (++pos > 90) {
+        needle_move_up_done = true;
+      }
+      else {
+        needle_tilt_servo.write(pos);
+        servo_step_move_done = true;
+        pos ++;
+      }
+    }
+}
+}
+
+int tilt_down(Servo needle_tilt_servo, unsigned int servo_delay) {
+  unsigned int prev_millis = 0;
+  boolean servo_step_move_done = false;
+  boolean running_correctly = true;
+  boolean needle_move_down_done = false;
+  int pos = 90;
+  while(!needle_move_down_done){
+    unsigned int cur_millis = millis();
+    // if it has, check that the delay has passed
+    if (cur_millis - prev_millis >= servo_delay) {
+      // update prev_millis
+      prev_millis += servo_delay;
+      if (--pos < 0) {
+        needle_move_down_done = true;
+      }
+      else {
+        needle_tilt_servo.write(pos);
+        servo_step_move_done = true;
+        pos --;
+      }
+    }
+}
+}
+
 
