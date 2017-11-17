@@ -7,16 +7,14 @@
 #ifdef __AVR__
   #include <avr/power.h>
 #endif
-#include <Servo.h>
 
 #define PIN 6
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, PIN, NEO_GRB + NEO_KHZ800);
 
-Servo needle_tilt_servo; // creates servo object
-
 const byte button1 = 2; //green
 const byte button2 = 3; //blue
 const byte button3 = 4;
+const byte motorPin = 5;
 
 
 LiquidCrystal_I2C lcd(0x3E, 2, 1, 0, 4, 5, 6, 7, 3,POSITIVE); 
@@ -51,14 +49,6 @@ double green_g_b = 197.0/244.0;
 double orange_o_b = 10.0/255.0;
 double orange_o_g = 60.0/255.0; 
 
-
-
-int pos = 0; // position, for servo sweep iterator
-float servo_step = 1; // step size for servo sweep
-unsigned int servo_delay = 20;
-unsigned int prev_millis = 0;
-unsigned int cur_millis = millis();
-
 // setup routine runs once when you press reset (only runs once)
 void setup() {
     pinMode(signalRead, INPUT); //set the analog pin as an input
@@ -75,8 +65,7 @@ void setup() {
     pinMode(button1,INPUT);
     pinMode(button2,INPUT);
     pinMode(button3,INPUT);
-
-    needle_tilt_servo.attach(5); // attaches servo to pin 5
+    pinMode(motorPin,OUTPUT);
     
     lcd.begin(16,2);   // initialize the lcd for 16 chars 2 lines, turn on backlight
   // ------- Quick 3 blinks of backlight  -------------
@@ -121,15 +110,6 @@ void loop(){
       prevVal = newVal;
 
 
-      cur_millis = millis();
-      if (cur_millis - prev_millis > 1000) {
-        prev_millis += 1000;
-        new_song_tilt(needle_tilt_servo, servo_delay);
-      }
-    
-    //  new_song_tilt(needle_tilt_servo, servo_delay);
-    //  delay(500);
-    
   //button1 debounce (choose song)
   if (currentMillis - debouncingMillis >= 50) {
     //check to see if button has been pressed
@@ -141,10 +121,7 @@ void loop(){
         if (lcdCounter <= 0) {
           lcdCounter = 5;
         }
-        Serial.println("1");
-        // lift and lower record needle
-        new_song_tilt(needle_tilt_servo, servo_delay);
-        
+        Serial.println("1");     
       } 
       //reset the debounce timer
       debouncingMillis = currentMillis;
@@ -158,8 +135,6 @@ void loop(){
       if (button2State == HIGH) {
         Serial.println("2");
         button3Counter = 0;
-        // lift and lower record needle
-        new_song_tilt(needle_tilt_servo, servo_delay);
       } 
       //reset the debounce timer
       debouncingMillis = currentMillis;
@@ -183,6 +158,13 @@ void loop(){
       }
     }
   }
+  if (button3Counter == 0) {
+    digitalWrite(motorPin,LOW);
+  }
+  if (button3Counter == 1) {
+    digitalWrite(motorPin,HIGH);
+  }
+  
   lastButton1State = button1State;
   lastButton2State = button2State;
   lastButton3State = button3State;
@@ -258,59 +240,6 @@ void setTwoColor(uint32_t color1, uint32_t color2) {
     strip.setPixelColor(i, color2);
   }
   strip.show();
-}
-
-int new_song_tilt(Servo needle_tilt_servo, unsigned int servo_delay) {
-  tilt_up(needle_tilt_servo, servo_delay);
-  tilt_down(needle_tilt_servo, servo_delay);
-}
-
-int tilt_up(Servo needle_tilt_servo, unsigned int servo_delay) {
-  unsigned int prev_millis = 0;
-  boolean servo_step_move_done = false;
-  boolean running_correctly = true;
-  boolean needle_move_up_done = false;
-  int pos = 0;
-  while(!needle_move_up_done){
-    unsigned int cur_millis = millis(); 
-    // if it has, check that the delay has passed
-    if (cur_millis - prev_millis >= servo_delay) {
-      // update prev_millis
-      prev_millis += servo_delay;
-      if (++pos > 90) {
-        needle_move_up_done = true;
-      }
-      else {
-        needle_tilt_servo.write(pos);
-        servo_step_move_done = true;
-        pos ++;
-      }
-    }
-}
-}
-
-int tilt_down(Servo needle_tilt_servo, unsigned int servo_delay) {
-  unsigned int prev_millis = 0;
-  boolean servo_step_move_done = false;
-  boolean running_correctly = true;
-  boolean needle_move_down_done = false;
-  int pos = 90;
-  while(!needle_move_down_done){
-    unsigned int cur_millis = millis();
-    // if it has, check that the delay has passed
-    if (cur_millis - prev_millis >= servo_delay) {
-      // update prev_millis
-      prev_millis += servo_delay;
-      if (--pos < 0) {
-        needle_move_down_done = true;
-      }
-      else {
-        needle_tilt_servo.write(pos);
-        servo_step_move_done = true;
-        pos --;
-      }
-    }
-}
 }
 
 
