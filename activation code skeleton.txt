@@ -1,0 +1,44 @@
+bool activated = false;
+bool silence = false;
+bool prevSilence = false;
+long silenceCounter;
+float silenceLimit = 88;
+
+bool buttonAState = LOW;
+bool lastButtonAState = LOW;
+bool buttonAPress = false;
+
+//within main loop, possibly also place a copy in Startup but it shouldn't be necessary
+
+if (activated = false){
+//LCD display "Insert marble to begin"
+while (activated = false){
+//check button with debounce
+if (activationButtonDebounced = true) {
+activated = true;
+return
+}
+}
+}
+
+
+//the rest of the loop
+//check for silence every LED strip round
+if (voltageReading < silenceLimit){
+silence = true;
+}
+
+if (silence = true){
+if (millis()-silenceCounter > 2000) {
+activated = false;
+silence = false;
+prevSilence = false;
+return
+}
+
+prevSilence = silence;
+if (prevSilence = false){
+silenceCounter = millis();
+}
+
+}
