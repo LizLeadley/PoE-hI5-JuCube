@@ -15,24 +15,20 @@ unsigned int prev_millis = 0;
 unsigned int cur_millis = millis();
 
 void setup() {
-  needle_tilt_servo.attach(5); // attaches servo to pin 5
+  needle_tilt_servo.attach(6); // attaches servo to pin 5
 }
 
 void loop() {
-  cur_millis = millis();
-  if (cur_millis - prev_millis > 1000) {
-    prev_millis += 1000;
     new_song_tilt(needle_tilt_servo, servo_delay);
-  }
 
 //  new_song_tilt(needle_tilt_servo, servo_delay);
-//  delay(500);
+  delay(500);
   
 }
 
 int new_song_tilt(Servo needle_tilt_servo, unsigned int servo_delay) {
   tilt_up(needle_tilt_servo, servo_delay);
-  tilt_down(needle_tilt_servo, servo_delay);
+  tilt_down(needle_tilt_servo, 100);
 }
 
 int tilt_up(Servo needle_tilt_servo, unsigned int servo_delay) {
@@ -71,7 +67,7 @@ int tilt_down(Servo needle_tilt_servo, unsigned int servo_delay) {
     if (cur_millis - prev_millis >= servo_delay) {
       // update prev_millis
       prev_millis += servo_delay;
-      if (--pos < 0) {
+      if (--pos < 5) {
         needle_move_down_done = true;
       }
       else {
