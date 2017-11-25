@@ -14,9 +14,9 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, PIN, NEO_GRB + NEO_KHZ800);
 
 Servo needle_tilt_servo; // creates servo object
 
-const byte button1 = 2; //green
-const byte button2 = 3; //blue
-const byte button3 = 4;
+const byte button1 = 2; //brown (seek)
+const byte button2 = 3; //orange (select)
+const byte button3 = 4; //green (play)
 
 
 LiquidCrystal_I2C lcd(0x3E, 2, 1, 0, 4, 5, 6, 7, 3,POSITIVE); 
