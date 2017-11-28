@@ -10,6 +10,8 @@ Servo needle_tilt_servo; // creates servo object
 
 int pos = 0; // position, for servo sweep iterator
 float servo_step = 1; // step size for servo sweep
+const int min_pos = 20;
+const int max_pos = 110;
 unsigned int servo_delay = 20;
 unsigned int prev_millis = 0;
 unsigned int cur_millis = millis();
@@ -26,24 +28,24 @@ void loop() {
   
 }
 
-int new_song_tilt(Servo needle_tilt_servo, unsigned int servo_delay) {
-  tilt_up(needle_tilt_servo, servo_delay);
-  tilt_down(needle_tilt_servo, 100);
+void new_song_tilt(Servo needle_tilt_servo, unsigned int servo_delay) {
+  tilt_up(needle_tilt_servo, servo_delay, min_pos, max_pos);
+  tilt_down(needle_tilt_servo, 100, min_pos, max_pos);
 }
 
-int tilt_up(Servo needle_tilt_servo, unsigned int servo_delay) {
+void tilt_up(Servo needle_tilt_servo, unsigned int servo_delay, const int min_pos, const int max_pos) {
   unsigned int prev_millis = 0;
   boolean servo_step_move_done = false;
   boolean running_correctly = true;
   boolean needle_move_up_done = false;
-  int pos = 0;
+  int pos = min_pos;
   while(!needle_move_up_done){
     unsigned int cur_millis = millis(); 
     // if it has, check that the delay has passed
     if (cur_millis - prev_millis >= servo_delay) {
       // update prev_millis
       prev_millis += servo_delay;
-      if (++pos > 90) {
+      if (++pos > max_pos) {
         needle_move_up_done = true;
       }
       else {
@@ -55,19 +57,18 @@ int tilt_up(Servo needle_tilt_servo, unsigned int servo_delay) {
 }
 }
 
-int tilt_down(Servo needle_tilt_servo, unsigned int servo_delay) {
+void tilt_down(Servo needle_tilt_servo, unsigned int servo_delay, const int min_pos, const int max_pos) {
   unsigned int prev_millis = 0;
   boolean servo_step_move_done = false;
-  boolean running_correctly = true;
   boolean needle_move_down_done = false;
-  int pos = 90;
+  int pos = max_pos;
   while(!needle_move_down_done){
     unsigned int cur_millis = millis();
     // if it has, check that the delay has passed
     if (cur_millis - prev_millis >= servo_delay) {
       // update prev_millis
       prev_millis += servo_delay;
-      if (--pos < 5) {
+      if (--pos < min_pos) {
         needle_move_down_done = true;
       }
       else {
@@ -78,5 +79,3 @@ int tilt_down(Servo needle_tilt_servo, unsigned int servo_delay) {
     }
 }
 }
-
-

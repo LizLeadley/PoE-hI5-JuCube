@@ -17,11 +17,16 @@ Servo needle_tilt_servo; // creates servo object
 
 int pos = 0; // position, for servo sweep iterator
 const int min_pos = 20;
-const int max_pos = 100;
+const int max_pos = 95;
 float servo_step = 1; // step size for servo sweep
 unsigned int servo_delay = 20;
 unsigned int prev_millis = 0;
-unsigned int cur_millis = millis();
+unsigned int cur_millis;
+
+boolean servo_step_move_done = false;
+boolean needle_move_down_done = false;
+boolean needle_move_up_done = false;
+
 bool go = false;
 
 
@@ -38,12 +43,12 @@ void setup() {
 
 void loop() {
   delay(100);
-  if (go) {
-    Serial.println("Go!");
-    new_song_tilt(needle_tilt_servo, servo_delay, min_pos, max_pos);
-    go = false;
-    Serial.println("go is false");
-  }
+//  if (go) {
+//    Serial.println("Go!");
+//    new_song_tilt(needle_tilt_servo, servo_delay, min_pos, max_pos);
+//    go = false;
+//    Serial.println("go is false");
+//  }
 }
 
 // function that executes whenever data is received from master
@@ -58,8 +63,13 @@ void receiveEvent(int howMany) {
   if (x % 20 == 2) {
     go = true;
     Serial.println("Go is true");
-
+    needle_tilt_servo.write(max_pos);
+    //needle_tilt_servo.write(min_pos);
     // new_song_tilt(needle_tilt_servo, servo_delay, min_pos, max_pos);
+    delay(100);
+  }
+  else {
+    needle_tilt_servo.write(min_pos);
   }
 }
 
@@ -69,17 +79,13 @@ void new_song_tilt(Servo needle_tilt_servo, unsigned int servo_delay, const int 
 }
 
 void tilt_up(Servo needle_tilt_servo, unsigned int servo_delay, const int min_pos, const int max_pos) {
-  unsigned int prev_millis = 0;
-  boolean servo_step_move_done = false;
-  boolean running_correctly = true;
-  boolean needle_move_up_done = false;
+  servo_step_move_done = false;
+  needle_move_up_done = false;
   int pos = min_pos;
   while(!needle_move_up_done){
-    unsigned int cur_millis = millis(); 
+    cur_millis = millis(); 
     // if it has, check that the delay has passed
     if (cur_millis - prev_millis >= servo_delay) {
-      // update prev_millis
-      prev_millis += servo_delay;
       if (++pos > max_pos) {
         needle_move_up_done = true;
       }
@@ -89,21 +95,20 @@ void tilt_up(Servo needle_tilt_servo, unsigned int servo_delay, const int min_po
         pos ++;
       }
     }
+    // update prev_millis
+    prev_millis == cur_millis;
 }
 }
 
 void tilt_down(Servo needle_tilt_servo, unsigned int servo_delay, const int min_pos, const int max_pos) {
-  unsigned int prev_millis = 0;
-  boolean servo_step_move_done = false;
-  boolean running_correctly = true;
-  boolean needle_move_down_done = false;
+  servo_step_move_done = false;
+  needle_move_down_done = false;
   int pos = max_pos;
   while(!needle_move_down_done){
-    unsigned int cur_millis = millis();
+    cur_millis = millis();
     // if it has, check that the delay has passed
     if (cur_millis - prev_millis >= servo_delay) {
-      // update prev_millis
-      prev_millis += servo_delay;
+  
       if (--pos < min_pos) {
         needle_move_down_done = true;
       }
@@ -112,6 +117,8 @@ void tilt_down(Servo needle_tilt_servo, unsigned int servo_delay, const int min_
         servo_step_move_done = true;
         pos --;
       }
+      // update prev_millis
+      prev_millis == cur_millis;
     }
 }
 }
