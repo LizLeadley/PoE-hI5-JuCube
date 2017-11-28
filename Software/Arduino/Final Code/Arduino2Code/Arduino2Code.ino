@@ -23,12 +23,13 @@ unsigned int servo_delay = 20;
 unsigned int prev_millis = 0;
 unsigned int cur_millis;
 
-boolean servo_step_move_done = false;
-boolean needle_move_down_done = false;
-boolean needle_move_up_done = false;
+//boolean servo_step_move_done = false;
+//boolean needle_move_down_done = false;
+//boolean needle_move_up_done = false;
 
-bool go = false;
+//bool go = false;
 
+bool needle_moved = false;
 
 void setup() {
   Serial.begin(9600);           // start serial for output
@@ -60,16 +61,17 @@ void receiveEvent(int howMany) {
   }
   int x = Wire.read();    // receive byte as an integer
   Serial.println(x);         // print the integer
-  if (x % 20 == 2) {
-    go = true;
-    Serial.println("Go is true");
-    needle_tilt_servo.write(max_pos);
-    //needle_tilt_servo.write(min_pos);
-    // new_song_tilt(needle_tilt_servo, servo_delay, min_pos, max_pos);
-    delay(100);
+
+  // means song is not playing
+  if (x == 0) {
+    needle_moved = false;
   }
-  else {
+  else if (x == 1){
+    needle_tilt_servo.write(max_pos);
+    delay(100);
     needle_tilt_servo.write(min_pos);
+    delay(100);
+    needle_moved = true;
   }
 }
 

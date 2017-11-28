@@ -2,6 +2,7 @@
  *  Buttons and LED Strip
  */
 #include <LiquidCrystal_I2C.h>
+#include <Wire.h> // library for serial communication
 
 #include <Adafruit_NeoPixel.h>
 #ifdef __AVR__
@@ -11,19 +12,10 @@
 #define PIN 6
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, PIN, NEO_GRB + NEO_KHZ800);
 
-<<<<<<< HEAD:LCD/LCD_and_Buttons/LCD_and_Buttons.ino
-Servo needle_tilt_servo; // creates servo object
-
-const byte button1 = 2; //brown (seek)
-const byte button2 = 3; //orange (select)
-const byte button3 = 4; //green (play)
-=======
 const byte button1 = 2; //green
 const byte button2 = 3; //blue
 const byte button3 = 4;
 const byte motorPin = 5;
->>>>>>> 6baff94c3d9b0a45158e30fb031e3296f8b74a7e:Software/Arduino/Final Code/Arduino1Code/LCD_and_Buttons.ino
-
 
 LiquidCrystal_I2C lcd(0x3E, 2, 1, 0, 4, 5, 6, 7, 3,POSITIVE); 
 
@@ -68,6 +60,9 @@ void setup() {
     strip.begin();
     strip.show(); // Initialize all pixels to 'off'
     strip.setBrightness(245); //set max brightness
+
+    // begin serial communication
+    Wire.begin();
     
     Serial.begin(9600);
     pinMode(button1,INPUT);
@@ -168,9 +163,17 @@ void loop(){
   }
   if (button3Counter == 0) {
     digitalWrite(motorPin,LOW);
+    // Serial communication to record needle
+    Wire.beginTransmission(8); // transmit to device #8
+    Wire.write(0);              // sends 0 for song not playing
+    Wire.endTransmission();    // stop transmitting
   }
   if (button3Counter == 1) {
     digitalWrite(motorPin,HIGH);
+    // Serial communication to record needle
+    Wire.beginTransmission(8); // transmit to device #8
+    Wire.write(1);              // sends 1 for song playing
+    Wire.endTransmission();    // stop transmitting
   }
   
   lastButton1State = button1State;
