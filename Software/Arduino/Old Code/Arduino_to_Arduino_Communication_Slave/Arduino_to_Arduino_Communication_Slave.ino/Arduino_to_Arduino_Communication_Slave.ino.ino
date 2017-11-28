@@ -1,34 +1,69 @@
-/* Record Needle Tilt
- *  One Servo with function that tilts from horizontal to vertical
- *  by Sophia Nielsen
- *  modified 6 Nov 2017
- */
+// Wire Slave Receiver
+// by Nicholas Zambetti <http://www.zambetti.com>
 
+// Demonstrates use of the Wire library
+// Receives data as an I2C/TWI slave device
+// Refer to the "Wire Master Writer" example for use with this
+
+// Created 29 March 2006
+
+// This example code is in the public domain.
+
+
+#include <Wire.h>
 #include <Servo.h>
 
 Servo needle_tilt_servo; // creates servo object
 
 int pos = 0; // position, for servo sweep iterator
-float servo_step = 1; // step size for servo sweep
 const int min_pos = 20;
-const int max_pos = 110;
+const int max_pos = 100;
+float servo_step = 1; // step size for servo sweep
 unsigned int servo_delay = 20;
 unsigned int prev_millis = 0;
 unsigned int cur_millis = millis();
+bool go = false;
+
 
 void setup() {
-  needle_tilt_servo.attach(6); // attaches servo to pin 5
+  Serial.begin(9600);           // start serial for output
+  Wire.begin(8);                // join i2c bus with address #8
+  Wire.onReceive(receiveEvent); // register event
+
+  needle_tilt_servo.attach(6);
+  needle_tilt_servo.write(min_pos);
+
 }
+
 
 void loop() {
-    new_song_tilt(needle_tilt_servo, servo_delay);
-
-//  new_song_tilt(needle_tilt_servo, servo_delay);
-  delay(500);
-  
+  delay(100);
+  if (go) {
+    Serial.println("Go!");
+    new_song_tilt(needle_tilt_servo, servo_delay, min_pos, max_pos);
+    go = false;
+    Serial.println("go is false");
+  }
 }
 
-void new_song_tilt(Servo needle_tilt_servo, unsigned int servo_delay) {
+// function that executes whenever data is received from master
+// this function is registered as an event, see setup()
+void receiveEvent(int howMany) {
+  while (1 < Wire.available()) { // loop through all but the last
+    char c = Wire.read(); // receive byte as a character
+    Serial.print(c);         // print the character
+  }
+  int x = Wire.read();    // receive byte as an integer
+  Serial.println(x);         // print the integer
+  if (x % 20 == 2) {
+    go = true;
+    Serial.println("Go is true");
+
+    // new_song_tilt(needle_tilt_servo, servo_delay, min_pos, max_pos);
+  }
+}
+
+void new_song_tilt(Servo needle_tilt_servo, unsigned int servo_delay, const int min_pos, const int max_pos) {
   tilt_up(needle_tilt_servo, servo_delay, min_pos, max_pos);
   tilt_down(needle_tilt_servo, 100, min_pos, max_pos);
 }
@@ -60,6 +95,7 @@ void tilt_up(Servo needle_tilt_servo, unsigned int servo_delay, const int min_po
 void tilt_down(Servo needle_tilt_servo, unsigned int servo_delay, const int min_pos, const int max_pos) {
   unsigned int prev_millis = 0;
   boolean servo_step_move_done = false;
+  boolean running_correctly = true;
   boolean needle_move_down_done = false;
   int pos = max_pos;
   while(!needle_move_down_done){
