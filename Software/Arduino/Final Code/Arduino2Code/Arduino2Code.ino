@@ -16,20 +16,21 @@
 Servo needle_tilt_servo; // creates servo object
 
 int pos = 0; // position, for servo sweep iterator
-const int min_pos = 20;
-const int max_pos = 95;
+const int min_pos = 30;
+const int max_pos = 100;
 float servo_step = 1; // step size for servo sweep
 unsigned int servo_delay = 20;
 unsigned int prev_millis = 0;
 unsigned int cur_millis;
 
-//boolean servo_step_move_done = false;
-//boolean needle_move_down_done = false;
-//boolean needle_move_up_done = false;
+boolean servo_step_move_done = false;
+boolean needle_move_down_done = false;
+boolean needle_move_up_done = false;
 
-//bool go = false;
-
+bool go = false;
 bool needle_moved = false;
+
+int x;
 
 void setup() {
   Serial.begin(9600);           // start serial for output
@@ -37,7 +38,9 @@ void setup() {
   Wire.onReceive(receiveEvent); // register event
 
   needle_tilt_servo.attach(6);
-  needle_tilt_servo.write(min_pos);
+  needle_tilt_servo.write(max_pos);
+  
+  //new_song_tilt_simple();
 
 }
 
@@ -50,6 +53,23 @@ void loop() {
 //    go = false;
 //    Serial.println("go is false");
 //  }
+
+// means song is not playing
+  if (x == 0) {
+    go = false;
+    needle_moved = false;
+    needle_tilt_servo.write(max_pos);
+  }
+  else if (x == 1){
+    go = true;
+    Serial.println("go");
+  }
+  if (go && !needle_moved) {
+    Serial.println("Move that needle");
+    needle_tilt_servo.write(min_pos);
+    needle_moved = true;
+    go = false;
+    }
 }
 
 // function that executes whenever data is received from master
@@ -59,20 +79,18 @@ void receiveEvent(int howMany) {
     char c = Wire.read(); // receive byte as a character
     Serial.print(c);         // print the character
   }
-  int x = Wire.read();    // receive byte as an integer
+  x = Wire.read();    // receive byte as an integer
   Serial.println(x);         // print the integer
 
-  // means song is not playing
-  if (x == 0) {
-    needle_moved = false;
-  }
-  else if (x == 1){
-    needle_tilt_servo.write(max_pos);
-    delay(100);
-    needle_tilt_servo.write(min_pos);
-    delay(100);
-    needle_moved = true;
-  }
+  
+}
+
+void new_song_tilt_simple(){
+  Serial.println("Servo Max");
+  delay(500);
+  needle_tilt_servo.write(min_pos);
+  Serial.println("Servo Min");
+  delay(500);
 }
 
 void new_song_tilt(Servo needle_tilt_servo, unsigned int servo_delay, const int min_pos, const int max_pos) {
