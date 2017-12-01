@@ -2,6 +2,7 @@
     Buttons and LED Strip
 */
 #include <LiquidCrystal_I2C.h>
+#include <Wire.h> // library for serial communication
 
 #include <Adafruit_NeoPixel.h>
 #ifdef __AVR__
@@ -224,10 +225,18 @@ void loop() {
     }
   }
   if (button3Counter == 0) {
-    digitalWrite(motorPin, LOW);
+    digitalWrite(motorPin,LOW);
+    // Serial communication to record needle
+    Wire.beginTransmission(8); // transmit to device #8
+    Wire.write(0);              // sends 0 for song not playing
+    Wire.endTransmission();    // stop transmitting
   }
   if (button3Counter == 1) {
-    digitalWrite(motorPin, HIGH);
+    digitalWrite(motorPin,HIGH);
+    // Serial communication to record needle
+    Wire.beginTransmission(8); // transmit to device #8
+    Wire.write(1);              // sends 1 for song playing
+    Wire.endTransmission();    // stop transmitting
   }
 
   lastButton1State = button1State;
