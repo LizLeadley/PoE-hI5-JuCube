@@ -328,7 +328,7 @@ void setTwoColor(uint32_t color1, uint32_t color2) {
     strip.setPixelColor(i, color1);
   }
   strip.show();
-  for(i=strip.numPixels()/2; i<strip.numPixels(); i++) {
+  for (i = strip.numPixels() / 2; i < strip.numPixels(); i++) {
     strip.setPixelColor(i, color2);
   }
   strip.show();
