@@ -32,7 +32,6 @@ int lcdCounter = 0;
 
 // will store last time LED was updated
 unsigned long lcdMillis = 0;
-unsigned long currentMillis = 0;
 unsigned long debouncingMillis = 0;
 
 //LED STRIP STUFF
@@ -64,9 +63,7 @@ bool buttonAState = LOW;
 bool lastButtonAState = LOW;
 bool buttonAPress = 0;
 unsigned long currentMillis = 0;
-unsigned long debouncingMillis = 0;
 const int buttonADebounceLimit = 10;
-
 
 
 // setup routine runs once when you press reset (only runs once)
@@ -104,6 +101,9 @@ void setup() {
   lcd.setCursor(5, 0); //Start at character 4 on line 0
   lcd.print("JuCube");
   delay(1000);
+
+  digitalWrite(motorPin,LOW);
+  Serial.println("motor off");
 }
 
 // put your main code here, to run repeatedly
@@ -116,7 +116,7 @@ void loop() {
   if (activated == 0) {
 
     //    LCD display "Insert marble to begin"
-    lcd.clear
+    lcd.clear();
     lcd.setCursor(1, 0); //Start somewhere on top line
     lcd.print("Insert marble");
     lcd.setCursor(4, 1); //hopfully starts on second line
