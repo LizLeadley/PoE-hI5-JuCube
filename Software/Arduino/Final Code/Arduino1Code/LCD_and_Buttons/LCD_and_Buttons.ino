@@ -164,22 +164,6 @@ void loop() {
   button4State = digitalRead(button4);
   // start timer
   currentMillis = millis();
-  //LED STRIP CODE:
-  double val = analogRead(signalRead);
-  if ( val > 15 ) {
-    val = 700;
-  }
-  double newVal = map(val, 0, 1023, 0, 200);
-  double giveVal = round(.5 * (newVal + prevVal));
-
-  uint32_t pinkBeat = strip.Color(giveVal, giveVal * (pink_r_g), giveVal * (pink_r_b)); //uses relative rgb values for pink
-  uint32_t blueBeat = strip.Color(giveVal * (blue_b_r), giveVal * (blue_b_g), giveVal); //uses relative rgb values for blue
-  uint32_t greenBeat = strip.Color(giveVal * (green_g_r), giveVal, giveVal * (green_g_b)); //relative color for green
-  uint32_t orangeBeat = strip.Color(giveVal, giveVal * (orange_o_g), giveVal * (orange_o_b)); //relative color for orange
-  //setColor(orangeBeat); //set initial color
-  setTwoColor(pinkBeat, blueBeat);
-  prevVal = newVal;
-
 /*
  * Check all the buttons, with debounces
  */
