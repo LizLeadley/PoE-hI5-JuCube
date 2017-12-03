@@ -191,6 +191,7 @@ void loop() {
       if (button1State == HIGH) {
         // increment counter to change the song
         lcdCounter--;
+        Serial.println("1");
         if (lcdCounter < 0) {
           lcdCounter = 15;
         }
@@ -200,6 +201,7 @@ void loop() {
       if (button4State == HIGH) {
         //increment counter to change song
         lcdCounter++;
+        Serial.println("3");
         if (lcdCounter > 15) {
           lcdCounter = 0;
         }
