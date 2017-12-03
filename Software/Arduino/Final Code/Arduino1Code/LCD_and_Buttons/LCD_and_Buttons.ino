@@ -2,6 +2,7 @@
     Buttons and LED Strip
 */
 #include <LiquidCrystal_I2C.h>
+#include <Wire.h> // library for serial communication
 
 #include <Adafruit_NeoPixel.h>
 #ifdef __AVR__
@@ -31,7 +32,6 @@ int lcdCounter = 0;
 
 // will store last time LED was updated
 unsigned long lcdMillis = 0;
-unsigned long currentMillis = 0;
 unsigned long debouncingMillis = 0;
 
 //LED STRIP STUFF
@@ -63,9 +63,7 @@ bool buttonAState = LOW;
 bool lastButtonAState = LOW;
 bool buttonAPress = 0;
 unsigned long currentMillis = 0;
-unsigned long debouncingMillis = 0;
 const int buttonADebounceLimit = 10;
-
 
 
 // setup routine runs once when you press reset (only runs once)
@@ -103,6 +101,9 @@ void setup() {
   lcd.setCursor(5, 0); //Start at character 4 on line 0
   lcd.print("JuCube");
   delay(1000);
+
+  digitalWrite(motorPin,LOW);
+  Serial.println("motor off");
 }
 
 // put your main code here, to run repeatedly
@@ -115,7 +116,7 @@ void loop() {
   if (activated == 0) {
 
     //    LCD display "Insert marble to begin"
-    lcd.clear
+    lcd.clear();
     lcd.setCursor(1, 0); //Start somewhere on top line
     lcd.print("Insert marble");
     lcd.setCursor(4, 1); //hopfully starts on second line
@@ -224,10 +225,18 @@ void loop() {
     }
   }
   if (button3Counter == 0) {
-    digitalWrite(motorPin, LOW);
+    digitalWrite(motorPin,LOW);
+    // Serial communication to record needle
+    Wire.beginTransmission(8); // transmit to device #8
+    Wire.write(0);              // sends 0 for song not playing
+    Wire.endTransmission();    // stop transmitting
   }
   if (button3Counter == 1) {
-    digitalWrite(motorPin, HIGH);
+    digitalWrite(motorPin,HIGH);
+    // Serial communication to record needle
+    Wire.beginTransmission(8); // transmit to device #8
+    Wire.write(1);              // sends 1 for song playing
+    Wire.endTransmission();    // stop transmitting
   }
 
   lastButton1State = button1State;
