@@ -19,11 +19,11 @@ class Music_Player():
         self.screen = pygame.display.set_mode(self.size)
         self.clock = pygame.time.Clock()
         self.myfont = pygame.font.SysFont("freesandbold", 50)
-        self.label = self.myfont.render("JuCube", True, (0,255,0))
+        self.label = self.myfont.render("SoundCrystal", True, (0,255,0))
 
     def filesfolder(self):
         files = []
-        path = 'C:/Users/apayano/Documents/GitHub/PoE-hI5-JuCube/Music player/Music/'
+        path = 'C:/Users/apayano/Documents/GitHub/PoE-hI5-JuCube/Music/'
         directory = os.listdir(path)
         for filename in directory:
             if filename.endswith(".mp3"):
@@ -45,19 +45,30 @@ arduino = serial.Serial('COM12', 9600, timeout=.1)
 def events(player, songs):
     i = -1
     loaded = False
-    path = 'C:/Users/apayano/Documents/GitHub/PoE-hI5-JuCube/Music player/Music/'
+    path = 'C:/Users/apayano/Documents/GitHub/PoE-hI5-JuCube/Music/'
 
     while True:
         data = arduino.readline()[:-2]
         if data == b'1':
             i -= 1
             if i < 0:
-                i = 4
+                i = 15
             print(songs[i])
             song = songs[i]
             songlen = len(songs[i])
-            songname = song[:songlen-4]
+            songname = song[3:songlen-4]
             player.label = player.myfont.render(songname, True, (0,255,0))
+            print("Back")
+        if data == b'3':
+            i += 1
+            if i > 15:
+                i = 0
+            print(songs[i])
+            song = songs[i]
+            songlen = len(songs[i])
+            songname = song[3:songlen-4]
+            player.label = player.myfont.render(songname, True, (0,255,0))
+            print("Forward")
         if data == b'2':
             print("Loading " + songs[i])
             player.label = player.myfont.render("Loading", True, (0,255,0))
