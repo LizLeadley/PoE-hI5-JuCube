@@ -12,20 +12,26 @@
 #define PIN 6
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, PIN, NEO_GRB + NEO_KHZ800);
 
-const byte button1 = 2; //green
-const byte button2 = 3; //blue
-const byte button3 = 4;
-const byte motorPin = 5;
+const byte button1 = 2; //green -- back
+const byte button2 = 3; //blue -- select
+const byte button3 = 4; // -- play
+const byte button4 = 5; // -- forward
+const byte motorPin = 7;
 
 LiquidCrystal_I2C lcd(0x3E, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);
 
 int button3Counter = 0;
-int button1State = 0;
-int button2State = 0;
-int button3State = 0;
+int button1State = 0; //Skip back
+int button2State = 0; // Select
+int button3State = 0; // Play
+int button4State = 0; // Skip forward
 int lastButton1State = 0;
 int lastButton2State = 0;
 int lastButton3State = 0;
+int lastButton4State = 0;
+char Songs[]= {"Jukebox Hero", "Shape Of You", " Eye Of The Tiger", "I Love Rock N' Roll", "We Will Rock You", "Don't Stop Believing",
+"Stereo Hearts", "Feel It Still", "Bohemian Rhapsody", "Sail", "Freaks", "Paper Planes", "Jump On It", "Heads Will Roll", 
+"Take A Walk", "Beat It"}
 
 int lcdCounter = 0;
 
@@ -98,8 +104,8 @@ void setup() {
 
   //-------- Write characters on the display ------------------
   // NOTE: Cursor Position: (CHAR, LINE) start at 0
-  lcd.setCursor(5, 0); //Start at character 4 on line 0
-  lcd.print("JuCube");
+  lcd.setCursor(2, 0); //Start at character 4 on line 0
+  lcd.print("SoundCrystal");
   delay(1000);
 
   digitalWrite(motorPin,LOW);
@@ -155,24 +161,9 @@ void loop() {
   button1State = digitalRead(button1);
   button2State = digitalRead(button2);
   button3State = digitalRead(button3);
+  button4State = digitalRead(button4);
   // start timer
   currentMillis = millis();
-  //LED STRIP CODE:
-  double val = analogRead(signalRead);
-  if ( val > 15 ) {
-    val = 700;
-  }
-  double newVal = map(val, 0, 1023, 0, 200);
-  double giveVal = round(.5 * (newVal + prevVal));
-
-  uint32_t pinkBeat = strip.Color(giveVal, giveVal * (pink_r_g), giveVal * (pink_r_b)); //uses relative rgb values for pink
-  uint32_t blueBeat = strip.Color(giveVal * (blue_b_r), giveVal * (blue_b_g), giveVal); //uses relative rgb values for blue
-  uint32_t greenBeat = strip.Color(giveVal * (green_g_r), giveVal, giveVal * (green_g_b)); //relative color for green
-  uint32_t orangeBeat = strip.Color(giveVal, giveVal * (orange_o_g), giveVal * (orange_o_b)); //relative color for orange
-  //setColor(orangeBeat); //set initial color
-  setTwoColor(pinkBeat, blueBeat);
-  prevVal = newVal;
-
 /*
  * Check all the buttons, with debounces
  */
@@ -182,16 +173,26 @@ void loop() {
     if (button1State != lastButton1State) {
       // if the state has changed (button has been pressed), increment the counter
       if (button1State == HIGH) {
-        // increment counter to change the LED mode
+        // increment counter to change the song
         lcdCounter--;
-        if (lcdCounter <= 0) {
-          lcdCounter = 5;
-        }
         Serial.println("1");
+        if (lcdCounter < 0) {
+          lcdCounter = 15;
+        }
       }
-      //reset the debounce timer
-      debouncingMillis = currentMillis;
     }
+    if (button4State != lastButton4State) {
+      if (button4State == HIGH) {
+        //increment counter to change song
+        lcdCounter++;
+        Serial.println("3");
+        if (lcdCounter > 15) {
+          lcdCounter = 0;
+        }
+      }
+    }
+    //reset the debounce timer
+    debouncingMillis = currentMillis;
   }
   //button2 debounce (load song)
   if (currentMillis - debouncingMillis >= 50) {
@@ -242,59 +243,17 @@ void loop() {
   lastButton1State = button1State;
   lastButton2State = button2State;
   lastButton3State = button3State;
+  lastButton4State = button4State;
 
 /*
  * Set the LCD to display what song is looked at
  */
-  if (lcdCounter == 1) {
     //first song
-    if (currentMillis - lcdMillis >= 500) {
-      lcd.clear();
-      lcd.setCursor(0, 0); //Start at character 4 on line 0
-      lcd.print("Eye of the Tiger");
-      lcdMillis = currentMillis;
-    }
-  }
-  if (lcdCounter == 2) {
-    //second song
-    if (currentMillis - lcdMillis >= 500) {
-      lcd.clear();
-      lcd.setCursor(5, 0); //Start at character 4 on line 0
-      lcd.print("I Love");
-      lcd.setCursor(2, 1);
-      lcd.print("Rock N Roll");
-      lcdMillis = currentMillis;
-    }
-  }
-
-  if (lcdCounter == 3) {
-    if (currentMillis - lcdMillis >= 500) {
-      //third song
-      lcd.clear();
-      lcd.setCursor(2, 0); //Start at character 4 on line 0
-      lcd.print("Jukebox Hero");
-      lcdMillis = currentMillis;
-    }
-  }
-
-  if (lcdCounter == 4) {
-    if (currentMillis - lcdMillis >= 500) {
-      //fourth song
-      lcd.clear();
-      lcd.setCursor(2, 0); //Start at character 4 on line 0
-      lcd.print("Shape of You");
-      lcdMillis = currentMillis;
-    }
-  }
-
-  if (lcdCounter == 5) {
-    if (currentMillis - lcdMillis >= 500) {
-      //fifth song
-      lcd.clear();
-      lcd.setCursor(0, 0); //Start at character 4 on line 0
-      lcd.print("We Will Rock You");
-      lcdMillis = currentMillis;
-    }
+  if (currentMillis - lcdMillis >= 500) {
+    lcd.clear();
+    lcd.setCursor(0, 0); //Start at character 4 on line 0
+    lcd.print(Songs[lcdCounter]);
+    lcdMillis = currentMillis;
   }
   
 /*
