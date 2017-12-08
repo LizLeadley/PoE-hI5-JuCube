@@ -21,15 +21,23 @@ const byte motorPin = 7;
 LiquidCrystal_I2C lcd(0x3E, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);
 
 int button3Counter = 0;
-int button1State = 0; //Skip back
-int button2State = 0; // Select
-int button3State = 0; // Play
-int button4State = 0; // Skip forward
-int lastButton1State = 0;
-int lastButton2State = 0;
-int lastButton3State = 0;
-int lastButton4State = 0;
-const char* Songs[]= {"Jukebox Hero", "Shape Of You", " Eye Of The Tiger", "I Love Rock N' Roll", "We Will Rock You", "Don't Stop Believing",
+int button1State; //Skip back
+int button2State; // Select
+int button3State; // Play
+int button4State; // Skip forward
+int lastButton1State = LOW;
+int lastButton2State = LOW;
+int lastButton3State = LOW;
+int lastButton4State = LOW;
+
+unsigned long currentMillis = 0;
+unsigned long lastDebounceTime = 0;
+unsigned long debounceDelay = 10;
+unsigned long currentScroll = 0;
+unsigned long scrollDelay = 150;
+
+
+const char* Songs[]= {"Jukebox Hero", "Shape Of You", "Eye Of The Tiger", "I Love Rock N' Roll", "We Will Rock You", "Don't Stop Believing",
 "Stereo Hearts", "Feel It Still", "Bohemian Rhapsody", "Sail", "Freaks", "Paper Planes", "Jump On It", "Heads Will Roll", 
 "Take A Walk", "Beat It"};
 
@@ -68,8 +76,7 @@ const byte buttonA = 13;
 bool buttonAState = LOW;
 bool lastButtonAState = LOW;
 bool buttonAPress = 0;
-unsigned long currentMillis = 0;
-const int buttonADebounceLimit = 10;
+const int buttonDebounceLimit = 10;
 
 
 // setup routine runs once when you press reset (only runs once)
@@ -140,7 +147,7 @@ void loop() {
       buttonAState = digitalRead(buttonA);
       // start timer
       currentMillis = millis();
-      if (currentMillis - debouncingMillis >= buttonADebounceLimit) {
+      if (currentMillis - debouncingMillis >= buttonDebounceLimit) {
         //check to see if button has been pressed
         if (buttonAState != lastButtonAState) {
           // if the state has changed (button has been pressed), increment the counter
@@ -156,6 +163,7 @@ void loop() {
         buttonAPress = 0;
         activationStartTime = millis(); //Start counting time
         activated = 1;
+        Serial.println("activated");
         return;
       }
     }
@@ -163,73 +171,86 @@ void loop() {
 // End of activation = 0 statement and loop
 
   // read the pushbutton input pin:
-  button1State = digitalRead(button1);
-  button2State = digitalRead(button2);
-  button3State = digitalRead(button3);
-  button4State = digitalRead(button4);
+  int read1 = digitalRead(button1);
+  int read2 = digitalRead(button2);
+  int read3 = digitalRead(button3);
+  int read4 = digitalRead(button4);
   // start timer
   currentMillis = millis();
 /*
  * Check all the buttons, with debounces
  */
-  //button1 debounce (choose song)
-  if (currentMillis - debouncingMillis >= 50) {
-    //check to see if button has been pressed
-    if (button1State != lastButton1State) {
-      // if the state has changed (button has been pressed), increment the counter
-      if (button1State == HIGH) {
-        // increment counter to change the song
-        lcdCounter--;
-        Serial.println("1");
-        if (lcdCounter < 0) {
-          lcdCounter = 15;
+  //button1 debounce (back)
+      // start timer
+      if (read1 != lastButton1State) {
+        lastDebounceTime = millis();
+      }
+      if ((millis()- lastDebounceTime) > debounceDelay) {
+        if (read1 != button1State) {
+          button1State = read1;
+          if (button1State == HIGH) {
+            lcdCounter--;
+            Serial.println("1");
+            if (lcdCounter < 0) {
+              lcdCounter = 15;
+            }
+          }
         }
       }
-    }
-    if (button4State != lastButton4State) {
-      if (button4State == HIGH) {
-        //increment counter to change song
-        lcdCounter++;
-        Serial.println("3");
-        if (lcdCounter > 15) {
-          lcdCounter = 0;
+      lastButton1State = read1;
+    //button2 debounce (select)
+      // start timer
+      if (read2 != lastButton2State) {
+        lastDebounceTime = millis();
+      }
+      if ((millis()- lastDebounceTime) > debounceDelay) {
+        if (read2 != button2State) {
+          button2State = read2;
+          if (button2State == HIGH) {
+            Serial.println("2");
+            lcd.setCursor(15, 1);
+            lcd.print("L");
+          }
         }
       }
-    }
-    //reset the debounce timer
-    debouncingMillis = currentMillis;
-  }
-  //button2 debounce (load song)
-  if (currentMillis - debouncingMillis >= 50) {
-    //check to see if button has been pressed
-    if (button2State != lastButton2State) {
-      // if the state has changed (button has been pressed), increment the counter
-      if (button2State == HIGH) {
-        Serial.println("2");
-        button3Counter = 0;
+      lastButton2State = read2;
+    //button3 debounce (play/pause song)
+      // start timer
+      if (read3 != lastButton3State) {
+        lastDebounceTime = millis();
       }
-      //reset the debounce timer
-      debouncingMillis = currentMillis;
-    }
-  }
-  //button3 debounce (play/pause)
-  if (currentMillis - debouncingMillis >= 50) {
-    //check to see if button has been pressed
-    if (button3State != lastButton3State) {
-      // if the state has changed (button has been pressed), increment the counter
-      if (button3State == HIGH) {
-        button3Counter++;
-        Serial.print("0");
-        Serial.println(button3Counter);
+      if ((millis()- lastDebounceTime) > debounceDelay) {
+        if (read3 != button3State) {
+          button3State = read3;
+          if (button3State == HIGH) {
+            button3Counter++;
+            Serial.print("0");
+            Serial.print(button3Counter);
+            lcd.setCursor(15, 1);
+            lcd.print("P");
+          }
+        }
+      }
+      lastButton3State = read3;
+    //button4 debounce (forward)
+      // start timer
+      if (read4 != lastButton4State) {
+        lastDebounceTime = millis();
+      }
+      if ((millis()- lastDebounceTime) > debounceDelay) {
+        if (read4 != button4State) {
+          button4State = read4;
+          if (button4State == HIGH) {
+            lcdCounter++;
+            Serial.println("4");
+            if (lcdCounter > 15) {
+              lcdCounter = 0;
+            }
+          }
+        }
+      }
+      lastButton4State = read4;
 
-      }
-      //reset the debounce timer
-      debouncingMillis = currentMillis;
-      if (button3Counter == 2) {
-        button3Counter = 0;
-      }
-    }
-  }
   if (button3Counter == 0) {
     digitalWrite(motorPin,LOW);
     // Serial communication to record needle
@@ -245,21 +266,42 @@ void loop() {
     Wire.endTransmission();    // stop transmitting
   }
 
-  lastButton1State = button1State;
-  lastButton2State = button2State;
-  lastButton3State = button3State;
-  lastButton4State = button4State;
-
 /*
  * Set the LCD to display what song is looked at
  */
     //first song
-  if (activated == 1);
-    if (currentMillis - lcdMillis >= 500) {
+  if (activated == 1){
+    if (millis() - lcdMillis >= 500) {
       lcd.clear();
-      lcd.setCursor(0, 0); //Start at character 4 on line 0
-      lcd.print(Songs[lcdCounter]);
-      lcdMillis = currentMillis;
+      String song = Songs[lcdCounter];
+      Serial.print(song);
+      Serial.print(',');
+      Serial.print(' ');
+      Serial.print(song.length());
+      if (song.length() > 15) {
+        int firstSpace = song.indexOf(' ', 4);
+        Serial.print(',');
+        Serial.print(' ');
+        Serial.print(firstSpace);
+        Serial.print(',');
+        Serial.print(' ');
+        Serial.print(song.substring(0, firstSpace));
+        lcd.setCursor(0,0);
+        lcd.print(song.substring(0, firstSpace));
+        lcd.setCursor(0,1);
+        lcd.print(song.substring(firstSpace+1));  
+        lcdMillis = currentMillis;
+      }
+      else {
+        lcd.setCursor(0, 0);//Start at character 4 on line 0
+        lcd.print(Songs[lcdCounter]);
+        lcdMillis = currentMillis;
+      } 
+    }
+      //for (int positionCounter = 0; positionCounter < 50; positionCounter++) {
+       //   lcd.scrollDisplayLeft();
+       // }
+      //}
   }
   
 /*
