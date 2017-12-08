@@ -29,9 +29,9 @@ int lastButton1State = 0;
 int lastButton2State = 0;
 int lastButton3State = 0;
 int lastButton4State = 0;
-char Songs[]= {"Jukebox Hero", "Shape Of You", " Eye Of The Tiger", "I Love Rock N' Roll", "We Will Rock You", "Don't Stop Believing",
+const char* Songs[]= {"Jukebox Hero", "Shape Of You", " Eye Of The Tiger", "I Love Rock N' Roll", "We Will Rock You", "Don't Stop Believing",
 "Stereo Hearts", "Feel It Still", "Bohemian Rhapsody", "Sail", "Freaks", "Paper Planes", "Jump On It", "Heads Will Roll", 
-"Take A Walk", "Beat It"}
+"Take A Walk", "Beat It"};
 
 int lcdCounter = 0;
 
@@ -60,7 +60,7 @@ double orange_o_g = 60.0 / 255.0;
 
 //Marble activation button stuff
 bool activated = 0;
-const long activationTime = 5 * 60 * 1000; //first # is # of minutes of activation per marble
+const long activationTime = 50 * 60 * 1000; //first # is # of minutes of activation per marble
 long activationStartTime;
 
 //buttonA for Activation Button
@@ -106,7 +106,12 @@ void setup() {
   // NOTE: Cursor Position: (CHAR, LINE) start at 0
   lcd.setCursor(2, 0); //Start at character 4 on line 0
   lcd.print("SoundCrystal");
-  delay(1000);
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(1, 0); //Start somewhere on top line
+  lcd.print("Insert marble");
+  lcd.setCursor(4, 1); //hopfully starts on second line
+  lcd.print("to begin");
 
   digitalWrite(motorPin,LOW);
   Serial.println("motor off");
@@ -249,11 +254,12 @@ void loop() {
  * Set the LCD to display what song is looked at
  */
     //first song
-  if (currentMillis - lcdMillis >= 500) {
-    lcd.clear();
-    lcd.setCursor(0, 0); //Start at character 4 on line 0
-    lcd.print(Songs[lcdCounter]);
-    lcdMillis = currentMillis;
+  if (activated == 1);
+    if (currentMillis - lcdMillis >= 500) {
+      lcd.clear();
+      lcd.setCursor(0, 0); //Start at character 4 on line 0
+      lcd.print(Songs[lcdCounter]);
+      lcdMillis = currentMillis;
   }
   
 /*
