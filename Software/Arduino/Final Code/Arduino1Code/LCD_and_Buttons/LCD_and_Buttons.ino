@@ -38,8 +38,8 @@ unsigned long scrollDelay = 150;
 
 
 const char* Songs[]= {"Jukebox Hero", "Shape Of You", "Eye Of The Tiger", "I Love Rock N' Roll", "We Will Rock You", "Don't Stop Believing",
-"Stereo Hearts", "Feel It Still", "Bohemian Rhapsody", "Sail", "Freaks", "Paper Planes", "Jump On It", "Heads Will Roll", 
-"Take A Walk", "Beat It"};
+"Stereo Hearts", "Feel It Still", "Bohemian Rhapsody", "Sail", "Freaks", "Paper Planes", "Heads Will Roll", 
+"Take A Walk", "Beat It", "rando"};
 
 int lcdCounter = 0;
 
@@ -68,8 +68,6 @@ double orange_o_g = 60.0 / 255.0;
 
 //Marble activation button stuff
 bool activated = 0;
-const long activationTime = 50 * 60 * 1000; //first # is # of minutes of activation per marble
-long activationStartTime;
 
 //buttonA for Activation Button
 const byte buttonA = 13;
@@ -161,7 +159,6 @@ void loop() {
 
       if (buttonAPress == 1) {
         buttonAPress = 0;
-        activationStartTime = millis(); //Start counting time
         activated = 1;
         Serial.println("activated");
         return;
@@ -208,8 +205,10 @@ void loop() {
           button2State = read2;
           if (button2State == HIGH) {
             Serial.println("2");
-            lcd.setCursor(15, 1);
-            lcd.print("L");
+            button3Counter = 0;
+            lcd.clear();
+            lcd.setCursor(9,1);
+            lcd.print("Loading");
           }
         }
       }
@@ -225,13 +224,33 @@ void loop() {
           if (button3State == HIGH) {
             button3Counter++;
             Serial.print("0");
-            Serial.print(button3Counter);
-            lcd.setCursor(15, 1);
-            lcd.print("P");
+            Serial.println(button3Counter);
+          }
+          if (button3Counter == 2) {
+            button3Counter = 0;
+          }
+          if (button3Counter == 0) {
+            lcd.clear();
+            lcd.setCursor(10,1);
+            lcd.print("Paused");
+          }
+          if (button3Counter == 1) {
+            lcd.clear();
+            lcd.setCursor(9,1);
+            lcd.print("Playing");
           }
         }
       }
       lastButton3State = read3;
+
+      if(Serial.available() > 0) {
+        char number = Serial.read();
+        lcd.setCursor(15,0);
+        lcd.print(number);
+        if (number == '3') { 
+          button3Counter = 0;
+        }
+      }
     //button4 debounce (forward)
       // start timer
       if (read4 != lastButton4State) {
@@ -274,18 +293,8 @@ void loop() {
     if (millis() - lcdMillis >= 500) {
       lcd.clear();
       String song = Songs[lcdCounter];
-      Serial.print(song);
-      Serial.print(',');
-      Serial.print(' ');
-      Serial.print(song.length());
       if (song.length() > 15) {
         int firstSpace = song.indexOf(' ', 4);
-        Serial.print(',');
-        Serial.print(' ');
-        Serial.print(firstSpace);
-        Serial.print(',');
-        Serial.print(' ');
-        Serial.print(song.substring(0, firstSpace));
         lcd.setCursor(0,0);
         lcd.print(song.substring(0, firstSpace));
         lcd.setCursor(0,1);
@@ -298,25 +307,8 @@ void loop() {
         lcdMillis = currentMillis;
       } 
     }
-      //for (int positionCounter = 0; positionCounter < 50; positionCounter++) {
-       //   lcd.scrollDisplayLeft();
-       // }
-      //}
   }
   
-/*
- * Pause and await activation if beyond a certain time
- * will be changed to include song end detection
- */
-   //If beyond activation time, stop and await reactivation
-  if (currentMillis - activationStartTime > activationTime) {
-    //  Pause, for now by simulating a Button 3 press
-    //    button3Counter++;
-    //        Serial.print("0");
-    //        Serial.println(button3Counter);
-    activated = 0;
-    return;
-  }
 
 }
 //End of main loop
