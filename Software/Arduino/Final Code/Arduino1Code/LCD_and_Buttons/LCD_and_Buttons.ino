@@ -39,7 +39,7 @@ unsigned long scrollDelay = 150;
 
 const char* Songs[]= {"Jukebox Hero", "Shape Of You", "Eye Of The Tiger", "I Love Rock N' Roll", "We Will Rock You", "Don't Stop Believing",
 "Stereo Hearts", "Feel It Still", "Bohemian Rhapsody", "Sail", "Freaks", "Paper Planes", "Heads Will Roll", 
-"Take A Walk", "Beat It", "rando"};
+"Take A Walk", "Beat It"};
 
 int lcdCounter = 0;
 
@@ -245,8 +245,6 @@ void loop() {
 
       if(Serial.available() > 0) {
         char number = Serial.read();
-        lcd.setCursor(15,0);
-        lcd.print(number);
         if (number == '3') { 
           button3Counter = 0;
         }
