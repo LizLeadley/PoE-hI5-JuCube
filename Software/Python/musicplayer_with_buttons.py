@@ -10,8 +10,9 @@ import serial
 class Music_Player():
 
     def __init__(self):
-        pygame.init()
+        #pygame.mixer.pre_init(48000, -16, 2, 2048)
         pygame.mixer.init()
+        pygame.init()
         pygame.font.init()
         self.display = pygame.display.set_caption('Music Player')
         self.blue = (0, 100, 205)
@@ -40,27 +41,30 @@ class Music_Player():
 musicplayer = Music_Player()
 songs = musicplayer.filesfolder()
 sound = musicplayer.picksong()
-arduino = serial.Serial('COM12', 9600, timeout=.1)
+arduino = serial.Serial('COM11', 9600, timeout=.1)
 
 def events(player, songs):
-    i = -1
+    i = 0
     loaded = False
     path = 'C:/Users/apayano/Documents/GitHub/PoE-hI5-JuCube/Music/'
 
     while True:
         data = arduino.readline()[:-2]
+        END_MUSIC_EVENT = pygame.USEREVENT + 0
+        pygame.mixer.music.set_endevent(END_MUSIC_EVENT)
         if data == b'1':
             i -= 1
             if i < 0:
-                i = 15
+                i = 15S
             print(songs[i])
             song = songs[i]
             songlen = len(songs[i])
             songname = song[3:songlen-4]
             player.label = player.myfont.render(songname, True, (0,255,0))
             print("Back")
-        if data == b'3':
+        if data == b'4':
             i += 1
+            print(i)
             if i > 15:
                 i = 0
             print(songs[i])
@@ -72,6 +76,7 @@ def events(player, songs):
         if data == b'2':
             print("Loading " + songs[i])
             player.label = player.myfont.render("Loading", True, (0,255,0))
+            pygame.mixer.init(44100)
             pygame.mixer.music.load((path + songs[i]))
             loaded = True
         if data == b'01':
@@ -79,7 +84,6 @@ def events(player, songs):
                 print('Load a song!')
             else:
                 if pygame.mixer.music.get_busy() == False:
-                    pygame.mixer.music.stop()
                     pygame.mixer.music.play()
                     player.label = player.myfont.render("Playing", True, (0,255,0))
                 else:
@@ -93,7 +97,8 @@ def events(player, songs):
                 pygame.mixer.music.pause()
                 player.label = player.myfont.render("Paused", True, (0,255,0))
                 print('Paused')
-
+                if pygame.mixer.music.get_busy() == False:
+                    arduino.write(b'3')
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -102,6 +107,8 @@ def events(player, songs):
                 if event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     sys.exit()
+            if event.type == END_MUSIC_EVENT and event.code == 0:
+                arduino.write(b'3')
         player.screen.fill(player.blue)
         pygame.display.update()
         player.screen.blit(player.label, (320 - player.label.get_width() // 2, 240 - player.label.get_height() // 2))
