@@ -85,6 +85,7 @@ def events(player, songs):
             else:
                 if pygame.mixer.music.get_busy() == False:
                     pygame.mixer.music.play()
+                    pygame.mixer.music.set_volume(1)
                     player.label = player.myfont.render("Playing", True, (0,255,0))
                 else:
                     pygame.mixer.music.unpause()
