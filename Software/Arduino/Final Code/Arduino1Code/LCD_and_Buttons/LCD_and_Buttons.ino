@@ -38,7 +38,7 @@ unsigned long scrollDelay = 150;
 
 
 const char* Songs[]= {"Jukebox Hero", "Shape Of You", "Eye Of The Tiger", "I Love Rock N' Roll", "We Will Rock You", "Don't Stop Believing",
-"Stereo Hearts", "Feel It Still", "Bohemian Rhapsody", "Sail", "Freaks", "Paper Planes", "Heads Will Roll", 
+"Stereo Hearts", "Feel It Still", "Bohemian Rhapsody", "Sail", "Freaks", "Paper Planes", "Jump On It", "Heads Will Roll", 
 "Take A Walk", "Beat It"};
 
 int lcdCounter = 0;
