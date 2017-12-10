@@ -55,7 +55,7 @@ def events(player, songs):
         if data == b'1':
             i -= 1
             if i < 0:
-                i = 15S
+                i = 15
             print(songs[i])
             song = songs[i]
             songlen = len(songs[i])
