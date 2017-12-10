@@ -3,6 +3,9 @@
 */
 #include <LiquidCrystal_I2C.h>
 #include <Wire.h> // library for serial communication
+#include <Servo.h>
+
+Servo needle_tilt_servo; //creates servo object
 
 #include <Adafruit_NeoPixel.h>
 #ifdef __AVR__
@@ -13,7 +16,7 @@
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, PIN, NEO_GRB + NEO_KHZ800);
 
 // Max and Min Servo Positions
-const int min_pos = 30;
+const int min_pos = 35;
 const int max_pos = 100;
 
 // blooleans for needle tilt
@@ -286,9 +289,9 @@ void loop() {
 //    Wire.beginTransmission(8); // transmit to device #8
 //    Wire.write(0);              // sends 0 for song not playing
 //    Wire.endTransmission();    // stop transmitting
-    needl_go = false;
+    needle_go = false;
     needle_moved = false;
-    needle_tilt_servo.write(max_pos);
+    needle_tilt_servo.write(min_pos);
   }
   if (button3Counter == 1) {
 //    digitalWrite(motorPin,HIGH);
@@ -300,7 +303,7 @@ void loop() {
   }
 
   if (needle_go && !needle_moved) {
-    needle_tilt_servo.write(min_pos);
+    needle_tilt_servo.write(max_pos);
     needle_moved = true;
     needle_go = false;
     }
