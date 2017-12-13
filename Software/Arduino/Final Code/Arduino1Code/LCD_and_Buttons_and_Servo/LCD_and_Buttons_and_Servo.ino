@@ -284,7 +284,7 @@ void loop() {
       lastButton4State = read4;
 
   if (button3Counter == 0) {
-//    digitalWrite(motorPin,LOW);
+    digitalWrite(motorPin,LOW);
 //    // Serial communication to record needle
 //    Wire.beginTransmission(8); // transmit to device #8
 //    Wire.write(0);              // sends 0 for song not playing
@@ -294,8 +294,8 @@ void loop() {
     needle_tilt_servo.write(min_pos);
   }
   if (button3Counter == 1) {
-//    digitalWrite(motorPin,HIGH);
-//    // Serial communication to record needle
+    digitalWrite(motorPin,HIGH);
+    // Serial communication to record needle
 //    Wire.beginTransmission(8); // transmit to device #8
 //    Wire.write(1);              // sends 1 for song playing
 //    Wire.endTransmission();    // stop transmitting
