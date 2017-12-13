@@ -48,9 +48,10 @@ unsigned long currentScroll = 0;
 unsigned long scrollDelay = 150;
 
 
-const char* Songs[]= {"Jukebox Hero", "Shape Of You", "Eye Of The Tiger", "I Love Rock N' Roll", "We Will Rock You", "Don't Stop Believing",
-"Stereo Hearts", "Feel It Still", "Bohemian Rhapsody", "Sail", "Freaks", "Paper Planes", "Jump On It", "Heads Will Roll", 
-"Take A Walk", "Beat It"};
+const char* Songs[] = {"Jukebox Hero", "Shape Of You", "Eye Of The Tiger", "I Love Rock N' Roll", "We Will Rock You", "Don't Stop Believing",
+                       "Stereo Hearts", "Feel It Still", "Bohemian Rhapsody", "Sail", "Freaks", "Paper Planes", "Jump On It", "Heads Will Roll",
+                       "Take A Walk", "Beat It"
+                      };
 
 int lcdCounter = 0;
 
@@ -79,6 +80,8 @@ double orange_o_g = 60.0 / 255.0;
 
 //Marble activation button stuff
 bool activated = 0;
+const int activationWaitLimit = 20 * 1000; //number of seconds to wait before assuming activation failure and starting anyway
+long initialMillis;
 
 //buttonA for Activation Button
 const byte buttonA = 13;
@@ -133,55 +136,52 @@ void setup() {
   lcd.setCursor(4, 1); //hopfully starts on second line
   lcd.print("to begin");
 
-  digitalWrite(motorPin,LOW);
+  digitalWrite(motorPin, LOW);
   Serial.println("motor off");
+
+  /* ------  Activation button ------ */
+
+  initialMillis = millis(); //Set start time for timeout
+
+  //Wait in loop for activation button to be pressed, or for timeout
+  while (activated == 0) {
+
+    //check button with small debounce
+    buttonAState = digitalRead(buttonA);
+    // start timer
+    currentMillis = millis();
+    if (currentMillis - debouncingMillis >= buttonDebounceLimit) {
+      //check to see if button has been pressed
+      if (buttonAState != lastButtonAState) {
+        // if the state has changed (button has been pressed), increment the counter
+        if (buttonAState == HIGH) {
+          buttonAPress = 1;
+        }
+      }
+      //reset the debounce timer
+      debouncingMillis = currentMillis;
+    }
+
+    if (currentMillis - initialMillis > activationWaitLimit) {
+      buttonAPress = 1;
+    }
+
+    if (buttonAPress == 1) {
+      buttonAPress = 0;
+      activated = 1;
+      Serial.println("activated");
+    }
+
+  }
+  // --- End of activation button stuff
+
 }
+
 
 // put your main code here, to run repeatedly
 void loop() {
 
-  /*  Check if activation button has been pressed
-    If not, wait for button press
-    If pressed, advance to the rest of the loop
-  */
-  if (activated == 0) {
-
-    //    LCD display "Insert marble to begin"
-    lcd.clear();
-    lcd.setCursor(1, 0); //Start somewhere on top line
-    lcd.print("Insert marble");
-    lcd.setCursor(4, 1); //hopfully starts on second line
-    lcd.print("to begin");
-
-    //Wait in loop for activation button to be pressed
-    while (activated == 0) {
-
-      //check button with special debounce
-      buttonAState = digitalRead(buttonA);
-      // start timer
-      currentMillis = millis();
-      if (currentMillis - debouncingMillis >= buttonDebounceLimit) {
-        //check to see if button has been pressed
-        if (buttonAState != lastButtonAState) {
-          // if the state has changed (button has been pressed), increment the counter
-          if (buttonAState == HIGH) {
-            buttonAPress = 1;
-          }
-        }
-        //reset the debounce timer
-        debouncingMillis = currentMillis;
-      }
-
-      if (buttonAPress == 1) {
-        buttonAPress = 0;
-        activated = 1;
-        Serial.println("activated");
-        return;
-      }
-    }
-  }
-// End of activation = 0 statement and loop
-
+  /*     ------ Check all the buttons, with debounces ------   */
   // read the pushbutton input pin:
   int read1 = digitalRead(button1);
   int read2 = digitalRead(button2);
@@ -189,116 +189,114 @@ void loop() {
   int read4 = digitalRead(button4);
   // start timer
   currentMillis = millis();
-/*
- * Check all the buttons, with debounces
- */
-  //button1 debounce (back)
-      // start timer
-      if (read1 != lastButton1State) {
-        lastDebounceTime = millis();
-      }
-      if ((millis()- lastDebounceTime) > debounceDelay) {
-        if (read1 != button1State) {
-          button1State = read1;
-          if (button1State == HIGH) {
-            lcdCounter--;
-            Serial.println("1");
-            if (lcdCounter < 0) {
-              lcdCounter = 15;
-            }
-          }
-        }
-      }
-      lastButton1State = read1;
-    //button2 debounce (select)
-      // start timer
-      if (read2 != lastButton2State) {
-        lastDebounceTime = millis();
-      }
-      if ((millis()- lastDebounceTime) > debounceDelay) {
-        if (read2 != button2State) {
-          button2State = read2;
-          if (button2State == HIGH) {
-            Serial.println("2");
-            button3Counter = 0;
-            lcd.clear();
-            lcd.setCursor(9,1);
-            lcd.print("Loading");
-          }
-        }
-      }
-      lastButton2State = read2;
-    //button3 debounce (play/pause song)
-      // start timer
-      if (read3 != lastButton3State) {
-        lastDebounceTime = millis();
-      }
-      if ((millis()- lastDebounceTime) > debounceDelay) {
-        if (read3 != button3State) {
-          button3State = read3;
-          if (button3State == HIGH) {
-            button3Counter++;
-            Serial.print("0");
-            Serial.println(button3Counter);
-          }
-          if (button3Counter == 2) {
-            button3Counter = 0;
-          }
-          if (button3Counter == 0) {
-            lcd.clear();
-            lcd.setCursor(10,1);
-            lcd.print("Paused");
-          }
-          if (button3Counter == 1) {
-            lcd.clear();
-            lcd.setCursor(9,1);
-            lcd.print("Playing");
-          }
-        }
-      }
-      lastButton3State = read3;
 
-      if(Serial.available() > 0) {
-        char number = Serial.read();
-        if (number == '3') { 
-          button3Counter = 0;
+  //button1 debounce (back)
+  // start timer
+  if (read1 != lastButton1State) {
+    lastDebounceTime = millis();
+  }
+  if ((millis() - lastDebounceTime) > debounceDelay) {
+    if (read1 != button1State) {
+      button1State = read1;
+      if (button1State == HIGH) {
+        lcdCounter--;
+        Serial.println("1");
+        if (lcdCounter < 0) {
+          lcdCounter = 15;
         }
       }
-    //button4 debounce (forward)
-      // start timer
-      if (read4 != lastButton4State) {
-        lastDebounceTime = millis();
+    }
+  }
+  lastButton1State = read1;
+  //button2 debounce (select)
+  // start timer
+  if (read2 != lastButton2State) {
+    lastDebounceTime = millis();
+  }
+  if ((millis() - lastDebounceTime) > debounceDelay) {
+    if (read2 != button2State) {
+      button2State = read2;
+      if (button2State == HIGH) {
+        Serial.println("2");
+        button3Counter = 0;
+        lcd.clear();
+        lcd.setCursor(9, 1);
+        lcd.print("Loading");
       }
-      if ((millis()- lastDebounceTime) > debounceDelay) {
-        if (read4 != button4State) {
-          button4State = read4;
-          if (button4State == HIGH) {
-            lcdCounter++;
-            Serial.println("4");
-            if (lcdCounter > 15) {
-              lcdCounter = 0;
-            }
-          }
+    }
+  }
+  lastButton2State = read2;
+  //button3 debounce (play/pause song)
+  // start timer
+  if (read3 != lastButton3State) {
+    lastDebounceTime = millis();
+  }
+  if ((millis() - lastDebounceTime) > debounceDelay) {
+    if (read3 != button3State) {
+      button3State = read3;
+      if (button3State == HIGH) {
+        button3Counter++;
+        Serial.print("0");
+        Serial.println(button3Counter);
+      }
+      if (button3Counter == 2) {
+        button3Counter = 0;
+      }
+      if (button3Counter == 0) {
+        lcd.clear();
+        lcd.setCursor(10, 1);
+        lcd.print("Paused");
+      }
+      if (button3Counter == 1) {
+        lcd.clear();
+        lcd.setCursor(9, 1);
+        lcd.print("Playing");
+      }
+    }
+  }
+  lastButton3State = read3;
+
+  if (Serial.available() > 0) {
+    char number = Serial.read();
+    if (number == '3') {
+      button3Counter = 0;
+    }
+  }
+  //button4 debounce (forward)
+  // start timer
+  if (read4 != lastButton4State) {
+    lastDebounceTime = millis();
+  }
+  if ((millis() - lastDebounceTime) > debounceDelay) {
+    if (read4 != button4State) {
+      button4State = read4;
+      if (button4State == HIGH) {
+        lcdCounter++;
+        Serial.println("4");
+        if (lcdCounter > 15) {
+          lcdCounter = 0;
         }
       }
-      lastButton4State = read4;
+    }
+  }
+  lastButton4State = read4;
 
   if (button3Counter == 0) {
-    digitalWrite(motorPin,LOW);
-//    // Serial communication to record needle
-//    Wire.beginTransmission(8); // transmit to device #8
-//    Wire.write(0);              // sends 0 for song not playing
-//    Wire.endTransmission();    // stop transmitting
+    digitalWrite(motorPin, LOW);
+    //    // Serial communication to record needle
+    //    Wire.beginTransmission(8); // transmit to device #8
+    //    Wire.write(0);              // sends 0 for song not playing
+    //    Wire.endTransmission();    // stop transmitting
     needle_go = false;
     needle_moved = false;
     needle_tilt_servo.write(min_pos);
   }
   if (button3Counter == 1) {
-    digitalWrite(motorPin,HIGH);
+    digitalWrite(motorPin, HIGH);
     // Serial communication to record needle
-//    Wire.beginTransmission(8); // transmit to device #8
-//    Wire.write(1);              // sends 1 for song playing
-//    Wire.endTransmission();    // stop transmitting
+    //    Wire.beginTransmission(8); // transmit to device #8
+    //    Wire.write(1);              // sends 1 for song playing
+    //    Wire.endTransmission();    // stop transmitting
     needle_go = true;
   }
 
@@ -306,32 +304,30 @@ void loop() {
     needle_tilt_servo.write(max_pos);
     needle_moved = true;
     needle_go = false;
-    }
+  }
 
-/*
- * Set the LCD to display what song is looked at
- */
-    //first song
-  if (activated == 1){
+  /* ------ Set the LCD to display what song is looked at ------ */
+  //first song
+  if (activated == 1) {
     if (millis() - lcdMillis >= 500) {
       lcd.clear();
       String song = Songs[lcdCounter];
       if (song.length() > 15) {
         int firstSpace = song.indexOf(' ', 4);
-        lcd.setCursor(0,0);
+        lcd.setCursor(0, 0);
         lcd.print(song.substring(0, firstSpace));
-        lcd.setCursor(0,1);
-        lcd.print(song.substring(firstSpace+1));  
+        lcd.setCursor(0, 1);
+        lcd.print(song.substring(firstSpace + 1));
         lcdMillis = currentMillis;
       }
       else {
         lcd.setCursor(0, 0);//Start at character 4 on line 0
         lcd.print(Songs[lcdCounter]);
         lcdMillis = currentMillis;
-      } 
+      }
     }
   }
-  
+
 
 }
 //End of main loop
