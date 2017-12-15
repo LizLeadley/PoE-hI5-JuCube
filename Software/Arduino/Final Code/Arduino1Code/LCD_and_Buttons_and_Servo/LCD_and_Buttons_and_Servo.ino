@@ -1,37 +1,35 @@
-/*
-    Buttons and LED Strip
-*/
-#include <LiquidCrystal_I2C.h>
+#include <LiquidCrystal_I2C.h> // library for LCD Screen
 #include <Wire.h> // library for serial communication
-#include <Servo.h>
+#include <Servo.h> // library for servo
 
 Servo needle_tilt_servo; //creates servo object
 
-#include <Adafruit_NeoPixel.h>
+#include <Adafruit_NeoPixel.h> //library for NeoPixel
 #ifdef __AVR__
 #include <avr/power.h>
 #endif
-
-#define PIN 6
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, PIN, NEO_GRB + NEO_KHZ800);
 
 // Max and Min Servo Positions
 const int min_pos = 35;
 const int max_pos = 100;
 
-// blooleans for needle tilt
+// booleans for needle tilt
 bool needle_go = false;
 bool needle_moved = false;
 
+// pins for music player buttons
 const byte button1 = 2; //green -- back
 const byte button2 = 3; //blue -- select
 const byte button3 = 4; // -- play
 const byte button4 = 5; // -- forward
+
+//pin for dc motor
 const byte motorPin = 7;
 
+//initialization of LCD Screen
 LiquidCrystal_I2C lcd(0x3E, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);
 
-int button3Counter = 0;
+int button3Counter = 0; //counter for the play/pause
 int button1State; //Skip back
 int button2State; // Select
 int button3State; // Play
@@ -41,18 +39,18 @@ int lastButton2State = LOW;
 int lastButton3State = LOW;
 int lastButton4State = LOW;
 
+//timers
 unsigned long currentMillis = 0;
 unsigned long lastDebounceTime = 0;
 unsigned long debounceDelay = 10;
 unsigned long currentScroll = 0;
 unsigned long scrollDelay = 150;
 
-
+//Songlist for LCD and counter for LCD
 const char* Songs[] = {"Jukebox Hero", "Shape Of You", "Eye Of The Tiger", "I Love Rock N' Roll", "We Will Rock You", "Don't Stop Believing",
                        "Stereo Hearts", "Feel It Still", "Bohemian Rhapsody", "Sail", "Freaks", "Paper Planes", "Jump On It", "Heads Will Roll",
                        "Take A Walk", "Beat It"
                       };
-
 int lcdCounter = 0;
 
 
@@ -74,10 +72,6 @@ double green_g_b = 197.0 / 244.0;
 double orange_o_b = 10.0 / 255.0;
 double orange_o_g = 60.0 / 255.0;
 
-/*
-   Activation stuff variables
-*/
-
 //Marble activation button stuff
 bool activated = 0;
 const int activationWaitLimit = 20 * 1000; //number of seconds to wait before assuming activation failure and starting anyway
@@ -90,14 +84,13 @@ bool lastButtonAState = LOW;
 bool buttonAPress = 0;
 const int buttonDebounceLimit = 10;
 
-
 // setup routine runs once when you press reset (only runs once)
 void setup() {
   pinMode(signalRead, INPUT); //set the analog pin as an input
   // This is for Trinket 5V 16MHz, you can remove these three lines if you are not using a Trinket
-#if defined (__AVR_ATtiny85__)
-  if (F_CPU == 16000000) clock_prescale_set(clock_div_1);
-#endif
+  #if defined (__AVR_ATtiny85__)
+      if (F_CPU == 16000000) clock_prescale_set(clock_div_1);
+  #endif
   // End of trinket special code
   strip.begin();
   strip.show(); // Initialize all pixels to 'off'
@@ -235,19 +228,19 @@ void loop() {
     if (read3 != button3State) {
       button3State = read3;
       if (button3State == HIGH) {
-        button3Counter++;
+        button3Counter++; //increase buttoncounter to figure out whether or not its a play or pause press
         Serial.print("0");
         Serial.println(button3Counter);
       }
-      if (button3Counter == 2) {
+      if (button3Counter == 2) { //reset counter
         button3Counter = 0;
       }
-      if (button3Counter == 0) {
+      if (button3Counter == 0) { //pause
         lcd.clear();
         lcd.setCursor(10, 1);
         lcd.print("Paused");
       }
-      if (button3Counter == 1) {
+      if (button3Counter == 1) { //play
         lcd.clear();
         lcd.setCursor(9, 1);
         lcd.print("Playing");
@@ -256,7 +249,7 @@ void loop() {
   }
   lastButton3State = read3;
 
-  if (Serial.available() > 0) {
+  if (Serial.available() > 0) { //set record spinner and needle to off state when song ends
     char number = Serial.read();
     if (number == '3') {
       button3Counter = 0;
@@ -283,20 +276,12 @@ void loop() {
 
   if (button3Counter == 0) {
     digitalWrite(motorPin, LOW);
-    //    // Serial communication to record needle
-    //    Wire.beginTransmission(8); // transmit to device #8
-    //    Wire.write(0);              // sends 0 for song not playing
-    //    Wire.endTransmission();    // stop transmitting
     needle_go = false;
     needle_moved = false;
     needle_tilt_servo.write(min_pos);
   }
   if (button3Counter == 1) {
     digitalWrite(motorPin, HIGH);
-    // Serial communication to record needle
-    //    Wire.beginTransmission(8); // transmit to device #8
-    //    Wire.write(1);              // sends 1 for song playing
-    //    Wire.endTransmission();    // stop transmitting
     needle_go = true;
   }
 
