@@ -27,7 +27,7 @@ class Music_Player():
         files.sort()
         return files
 
-arduino = serial.Serial('COM11', 9600, timeout=.1) #initialize Arduino serial port
+arduino = serial.Serial('COM11', 9600, timeout=.1) #initialize Arduino serial port; change "COM11" to whatever port arduino is connected to
 
 def events(player, songs):
     i = 0
