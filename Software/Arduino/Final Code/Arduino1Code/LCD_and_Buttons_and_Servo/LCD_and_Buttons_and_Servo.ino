@@ -58,23 +58,9 @@ int lcdCounter = 0;
 unsigned long lcdMillis = 0;
 unsigned long debouncingMillis = 0;
 
-//LED STRIP STUFF
-int prevVal = 0; //previous value for cleaning high frequencies
-int signalRead = A0; //input pin from transistor signal
-uint32_t hotPink = strip.Color(255, 25, 128);
-double pink_r_g = 25.0 / 255.0;
-double pink_r_b = 128.0 / 255.0;
-uint32_t blue = strip.Color(35, 73, 224);
-double blue_b_r = 35.0 / 224.0; //blue ratio for blue to red
-double blue_b_g = 73 / 224.0; //blue ratio for blue to green
-double green_g_r = 66.0 / 244.0;
-double green_g_b = 197.0 / 244.0;
-double orange_o_b = 10.0 / 255.0;
-double orange_o_g = 60.0 / 255.0;
-
 //Marble activation button stuff
 bool activated = 0;
-const int activationWaitLimit = 20 * 1000; //number of seconds to wait before assuming activation failure and starting anyway
+// const int activationWaitLimit = 20 * 1000; //number of seconds to wait before assuming activation failure and starting anyway
 long initialMillis;
 
 //buttonA for Activation Button
@@ -86,15 +72,6 @@ const int buttonDebounceLimit = 10;
 
 // setup routine runs once when you press reset (only runs once)
 void setup() {
-  pinMode(signalRead, INPUT); //set the analog pin as an input
-  // This is for Trinket 5V 16MHz, you can remove these three lines if you are not using a Trinket
-  #if defined (__AVR_ATtiny85__)
-      if (F_CPU == 16000000) clock_prescale_set(clock_div_1);
-  #endif
-  // End of trinket special code
-  strip.begin();
-  strip.show(); // Initialize all pixels to 'off'
-  strip.setBrightness(245); //set max brightness
 
   Serial.begin(9600);
   pinMode(button1, INPUT);
@@ -122,51 +99,12 @@ void setup() {
   // NOTE: Cursor Position: (CHAR, LINE) start at 0
   lcd.setCursor(2, 0); //Start at character 4 on line 0
   lcd.print("SoundCrystal");
-  delay(2000);
-  lcd.clear();
-  lcd.setCursor(1, 0); //Start somewhere on top line
-  lcd.print("Insert marble");
-  lcd.setCursor(4, 1); //hopfully starts on second line
-  lcd.print("to begin");
+  delay(5000);
 
   digitalWrite(motorPin, LOW);
   Serial.println("motor off");
 
-  /* ------  Activation button ------ */
 
-  initialMillis = millis(); //Set start time for timeout
-
-  //Wait in loop for activation button to be pressed, or for timeout
-  while (activated == 0) {
-
-    //check button with small debounce
-    buttonAState = digitalRead(buttonA);
-    // start timer
-    currentMillis = millis();
-    if (currentMillis - debouncingMillis >= buttonDebounceLimit) {
-      //check to see if button has been pressed
-      if (buttonAState != lastButtonAState) {
-        // if the state has changed (button has been pressed), increment the counter
-        if (buttonAState == HIGH) {
-          buttonAPress = 1;
-        }
-      }
-      //reset the debounce timer
-      debouncingMillis = currentMillis;
-    }
-
-    if (currentMillis - initialMillis > activationWaitLimit) {
-      buttonAPress = 1;
-    }
-
-    if (buttonAPress == 1) {
-      buttonAPress = 0;
-      activated = 1;
-      Serial.println("activated");
-    }
-
-  }
-  // --- End of activation button stuff
 
 }
 
@@ -253,6 +191,42 @@ void loop() {
     char number = Serial.read();
     if (number == '3') {
       button3Counter = 0;
+      activated = 0;
+    }
+  }
+  /* ------  Activation button ------ */
+   if (activated == 0) {
+    lcd.clear();
+    lcd.setCursor(1, 0); //Start somewhere on top line
+    lcd.print("Insert marble");
+    lcd.setCursor(4, 1); //hopfully starts on second line
+    lcd.print("to begin");
+    digitalWrite(motorPin, LOW);
+    needle_go = false;
+    needle_moved = false;
+    needle_tilt_servo.write(min_pos);
+   }
+   while (activated == 0) {
+  //check button with small debounce
+    buttonAState = digitalRead(buttonA);
+    // start timer
+    currentMillis = millis();
+    if (currentMillis - debouncingMillis >= buttonDebounceLimit) {
+      //check to see if button has been pressed 
+      if (buttonAState != lastButtonAState) {
+        // if the state has changed (button has been pressed), increment the counter
+        if (buttonAState == HIGH) {
+          buttonAPress = 1;
+        }
+      }
+      //reset the debounce timer
+      debouncingMillis = currentMillis;
+    }
+  
+    if (buttonAPress == 1) {
+      buttonAPress = 0;
+      activated = 1;
+      Serial.println("activated");
     }
   }
   //button4 debounce (forward)
@@ -316,24 +290,3 @@ void loop() {
 
 }
 //End of main loop
-
-void setColor(uint32_t color) {
-  uint16_t i;
-  for (i = 0; i < strip.numPixels(); i++) {
-    strip.setPixelColor(i, color);
-  }
-  strip.show();
-}
-
-void setTwoColor(uint32_t color1, uint32_t color2) {
-  uint16_t i;
-  for (i = 0; i < strip.numPixels() / 2; i++) {
-    strip.setPixelColor(i, color1);
-  }
-  strip.show();
-  for (i = strip.numPixels() / 2; i < strip.numPixels(); i++) {
-    strip.setPixelColor(i, color2);
-  }
-  strip.show();
-}
-
