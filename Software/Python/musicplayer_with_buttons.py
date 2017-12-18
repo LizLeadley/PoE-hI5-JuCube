@@ -1,7 +1,12 @@
 import pygame
 import os
+import multiprocessing
 import time
 import serial
+import sys
+import time
+import threading
+import random
 
 class Music_Player():
 
@@ -27,24 +32,28 @@ class Music_Player():
         files.sort()
         return files
 
+musicplayer = Music_Player()
+songs = musicplayer.filesfolder()
 arduino = serial.Serial('COM11', 9600, timeout=.1) #initialize Arduino serial port; change "COM11" to whatever port arduino is connected to
 
 def events(player, songs):
     i = 0
     loaded = False
-    song = songs[i]
-    songlen = len(songs[i])
-    songname = song[3:songlen-4]
-
+    path = 'C:/Users/apayano/Documents/GitHub/PoE-hI5-JuCube/Music/'
 
     while True:
         data = arduino.readline()[:-2] #start reading from Arduino serial
+        END_MUSIC_EVENT = pygame.USEREVENT + 0    # ID for music Event
+        pygame.mixer.music.set_endevent(END_MUSIC_EVENT)
         #conditions if buttons are pressed
         if data == b'1': #serial outputs "1" meaning back button is pressed
             i -= 1
             if i < 0:
                 i = 15
             print(songs[i])
+            song = songs[i]
+            songlen = len(songs[i])
+            songname = song[3:songlen-4]
             player.label = player.myfont.render(songname, True, (0,255,0))
             print("Back")
         if data == b'4': #serial outputs "4" meaning forward button is pressed
@@ -53,6 +62,9 @@ def events(player, songs):
             if i > 15:
                 i = 0
             print(songs[i])
+            song = songs[i]
+            songlen = len(songs[i])
+            songname = song[3:songlen-4]
             player.label = player.myfont.render(songname, True, (0,255,0))
             print("Forward")
         if data == b'2': #serial outputs "2" meaning load button is pressed
@@ -91,6 +103,7 @@ def events(player, songs):
                     sys.exit()
             if event.type == END_MUSIC_EVENT and event.code == 0:  #send data to arduino to stop motor and servo
                 arduino.write(b'3')
+                print("Song Ended")
         #update screen to say what state/button has been pressed
         player.screen.fill(player.blue)
         pygame.display.update()
